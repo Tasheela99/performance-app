@@ -23,8 +23,9 @@ export async function GET(request: NextRequest) {
       if (templateId) whereClause.templateId = templateId;
       if (employeeId) whereClause.employeeId = employeeId;
     } else {
-      // Employee can only see their own submissions
+      // Employee can only see their own submissions for PUBLISHED templates
       whereClause.employeeId = userId;
+      whereClause.template = { status: 'published' }; // Only published templates
       if (templateId) whereClause.templateId = templateId;
     }
 

@@ -43,6 +43,14 @@ export async function POST(
       );
     }
 
+    // Check if template is published
+    if (submission.template.status !== 'published') {
+      return NextResponse.json(
+        { error: 'Cannot submit for unpublished template' },
+        { status: 403 }
+      );
+    }
+
     // Check if submission is in submittable state
     if (submission.status === 'submitted' || submission.status === 'reviewed') {
       return NextResponse.json(

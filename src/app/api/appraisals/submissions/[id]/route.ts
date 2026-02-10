@@ -24,8 +24,9 @@ export async function GET(
     let whereClause: any = { id };
     
     if (userRole === 'employee') {
-      // Employee can only access their own submissions
+      // Employee can only access their own submissions for PUBLISHED templates
       whereClause.employeeId = userId;
+      whereClause.template = { status: 'published' };
     }
     // Admin and Manager can access all submissions (no additional where clause)
 
@@ -152,13 +153,29 @@ export async function PUT(
 
     // Check if submission exists and user has permission
     const submission = await prisma.appraisalSubmission.findFirst({
-      where: { id, employeeId: user.id }, // Only employees can update their own submissions
+      where: { 
+        id, 
+        employeeId: user.id, // Only employees can update their own submissions
+      },
+      include: {
+        template: {
+          select: { status: true }
+        }
+      }
     });
 
     if (!submission) {
       return NextResponse.json(
         { error: 'Submission not found or access denied' },
         { status: 404 }
+      );
+    }
+
+    // Check if template is published
+    if (submission.template.status !== 'published') {
+      return NextResponse.json(
+        { error: 'Cannot update submission for unpublished template' },
+        { status: 403 }
       );
     }
 

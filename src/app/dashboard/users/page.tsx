@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useAuth } from '@/contexts/AuthContext';
 import {
+    faChartLine,
     faEdit,
     faSave,
     faSearch,
@@ -327,14 +328,26 @@ export default function UserManagementPage() {
                         </Button>
                       </div>
                     ) : (
-                      <Button
-                        variant="outline"
-                        className="!py-1 !px-3 !text-xs"
-                        onClick={() => handleEdit(userRow.id)}
-                      >
-                        <FontAwesomeIcon icon={faEdit} className="mr-1" />
-                        Edit
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        {(userRow.role === 'employee' || userRow.role === 'manager') && (
+                          <Button
+                            variant="outline"
+                            className="!py-1 !px-3 !text-xs !text-purple-600 !border-purple-300 !hover:bg-purple-50"
+                            onClick={() => router.push(`/dashboard/employees/${userRow.id}`)}
+                          >
+                            <FontAwesomeIcon icon={faChartLine} className="mr-1" />
+                            Progress
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          className="!py-1 !px-3 !text-xs"
+                          onClick={() => handleEdit(userRow.id)}
+                        >
+                          <FontAwesomeIcon icon={faEdit} className="mr-1" />
+                          Edit
+                        </Button>
+                      </div>
                     )}
                   </td>
                 </tr>

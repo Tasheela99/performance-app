@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     let templates;
 
     if (userRole === 'admin' || userRole === 'manager') {
-      // Admin and Manager can see all templates
+      // Admin and Manager can see all templates (draft, published, closed)
       templates = await prisma.appraisalTemplate.findMany({
         include: {
           createdBy: {
@@ -37,12 +37,19 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' },
       });
     } else {
-      // Employee can only see templates assigned to them
+      // Employee can only see PUBLISHED templates assigned to them
       templates = await prisma.appraisalTemplate.findMany({
         where: {
-          assignments: {
-            some: { employeeId: userId }
-          }
+          AND: [
+            {
+              assignments: {
+                some: { employeeId: userId }
+              }
+            },
+            {
+              status: 'published' // Only show published templates to employees
+            }
+          ]
         },
         include: {
           createdBy: {

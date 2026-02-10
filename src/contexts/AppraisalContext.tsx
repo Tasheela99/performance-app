@@ -328,11 +328,13 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
   const getTemplatesForUser = useCallback(
     (user: User): AppraisalTemplate[] => {
       if (user.role === 'admin' || user.role === 'manager') {
-        // Admin and Manager can see all templates
+        // Admin and Manager can see all templates (draft, published, closed)
         return templates;
       } else {
-        // Employee can only see templates assigned to them
-        return templates.filter((t) => t.assignedTo.includes(user.id));
+        // Employee can only see PUBLISHED templates assigned to them
+        return templates.filter((t) => 
+          t.assignedTo.includes(user.id) && t.status === 'published'
+        );
       }
     },
     [templates],
