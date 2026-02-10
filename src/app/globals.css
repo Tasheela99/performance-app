@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+* {
+  font-family: var(--font-roboto), system-ui, sans-serif;
+}
+
+code, pre {
+  font-family: var(--font-roboto-mono), monospace;
+}

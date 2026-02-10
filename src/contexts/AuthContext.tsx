@@ -12,7 +12,9 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+export function AuthProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -21,7 +23,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkAuth = () => {
       try {
         const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        const token = localStorage.getItem('token');
+        if (storedUser && token) {
           setUser(JSON.parse(storedUser));
         }
       } catch (error) {
@@ -38,21 +41,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      // TODO: Replace with actual API call
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock user data - replace with actual API response
-      const mockUser: User = {
-        id: '1',
-        email: credentials.email,
-        name: 'John Doe',
-        role: 'employee',
-      };
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
 
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      localStorage.setItem('token', 'mock-jwt-token');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Login failed');
+      }
+
+      const data = await response.json();
+      
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -65,20 +71,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock user creation
-      const mockUser: User = {
-        id: '1',
-        email: data.email,
-        name: data.name,
-        role: 'employee',
-      };
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
 
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      localStorage.setItem('token', 'mock-jwt-token');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Registration failed');
+      }
+
+      await response.json();
+      
+      // After registration, automatically log in
+      await login({ email: data.email, password: data.password });
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -97,10 +106,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Password reset email sent to:', data.email);
+      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to send reset email');
+      }
+
+      const responseData = await response.json();
+      console.log('Password reset email sent:', responseData.message);
     } catch (error) {
       console.error('Forgot password error:', error);
       throw error;
@@ -113,10 +133,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Password reset successful');
+      const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Password reset failed');
+      }
+
+      const responseData = await response.json();
+      console.log('Password reset successful:', responseData.message);
     } catch (error) {
       console.error('Reset password error:', error);
       throw error;

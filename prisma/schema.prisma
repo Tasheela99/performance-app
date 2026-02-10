@@ -1,0 +1,215 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(255)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         Role     @default(employee)
+  department   String?  @db.VarChar(255)
+  position     String?  @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  passwordResetTokens   PasswordResetToken[]
+  createdTemplates      AppraisalTemplate[]  @relation("TemplateCreator")
+  templateAssignments   TemplateAssignment[]
+  appraisalSubmissions  AppraisalSubmission[]
+  appraisalReviews      AppraisalReview[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+enum Role {
+  admin
+  manager
+  employee
+}
+
+// Password Reset Token model
+model PasswordResetToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique @db.VarChar(255)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+// Appraisal Template model
+model AppraisalTemplate {
+  id          String         @id @default(uuid()) @db.Uuid
+  title       String         @db.VarChar(255)
+  description String?        @db.Text
+  period      String         @db.VarChar(100)
+  deadline    DateTime       @db.Timestamptz
+  createdById String         @map("created_by") @db.Uuid
+  status      TemplateStatus @default(draft)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  createdBy   User                  @relation("TemplateCreator", fields: [createdById], references: [id])
+  goals       Goal[]
+  assignments TemplateAssignment[]
+  submissions AppraisalSubmission[]
+
+  @@index([createdById])
+  @@index([status])
+  @@map("appraisal_templates")
+}
+
+enum TemplateStatus {
+  draft
+  published
+  closed
+}
+
+// Goal model (part of templates)
+model Goal {
+  id          String   @id @default(uuid()) @db.Uuid
+  templateId  String   @map("template_id") @db.Uuid
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  category    String   @db.VarChar(100)
+  weightage   Int
+  goalOrder   Int      @map("goal_order")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  template      AppraisalTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  goalResponses GoalResponse[]
+  goalReviews   GoalReview[]
+
+  @@index([templateId])
+  @@map("goals")
+}
+
+// Template Assignment model
+model TemplateAssignment {
+  id         String   @id @default(uuid()) @db.Uuid
+  templateId String   @map("template_id") @db.Uuid
+  employeeId String   @map("employee_id") @db.Uuid
+  assignedAt DateTime @default(now()) @map("assigned_at") @db.Timestamptz
+
+  // Relations
+  template AppraisalTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  employee User              @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, employeeId])
+  @@index([templateId])
+  @@index([employeeId])
+  @@map("template_assignments")
+}
+
+// Appraisal Submission model (employee responses)
+model AppraisalSubmission {
+  id           String           @id @default(uuid()) @db.Uuid
+  templateId   String           @map("template_id") @db.Uuid
+  employeeId   String           @map("employee_id") @db.Uuid
+  employeeName String           @map("employee_name") @db.VarChar(255)
+  status       SubmissionStatus @default(pending)
+  submittedAt  DateTime?        @map("submitted_at") @db.Timestamptz
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  template      AppraisalTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  employee      User              @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  goalResponses GoalResponse[]
+  review        AppraisalReview?
+
+  @@unique([templateId, employeeId])
+  @@index([templateId])
+  @@index([employeeId])
+  @@index([status])
+  @@map("appraisal_submissions")
+}
+
+enum SubmissionStatus {
+  pending
+  inProgress @map("in-progress")
+  submitted
+  reviewed
+}
+
+// Goal Response model (employee answers per goal)
+model GoalResponse {
+  id           String   @id @default(uuid()) @db.Uuid
+  submissionId String   @map("submission_id") @db.Uuid
+  goalId       String   @map("goal_id") @db.Uuid
+  response     String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  submission AppraisalSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  goal       Goal                @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, goalId])
+  @@index([submissionId])
+  @@index([goalId])
+  @@map("goal_responses")
+}
+
+// Appraisal Review model (manager scoring)
+model AppraisalReview {
+  id             String   @id @default(uuid()) @db.Uuid
+  submissionId   String   @unique @map("submission_id") @db.Uuid
+  reviewerId     String   @map("reviewer_id") @db.Uuid
+  reviewerName   String   @map("reviewer_name") @db.VarChar(255)
+  overallScore   Int      @map("overall_score")
+  overallComment String?  @map("overall_comment") @db.Text
+  reviewedAt     DateTime @default(now()) @map("reviewed_at") @db.Timestamptz
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  submission  AppraisalSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewer    User                @relation(fields: [reviewerId], references: [id])
+  goalReviews GoalReview[]
+
+  @@index([submissionId])
+  @@index([reviewerId])
+  @@map("appraisal_reviews")
+}
+
+// Goal Review model (manager scoring per goal)
+model GoalReview {
+  id        String   @id @default(uuid()) @db.Uuid
+  reviewId  String   @map("review_id") @db.Uuid
+  goalId    String   @map("goal_id") @db.Uuid
+  score     Int
+  feedback  String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  review AppraisalReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  goal   Goal            @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, goalId])
+  @@index([reviewId])
+  @@index([goalId])
+  @@map("goal_reviews")
+}

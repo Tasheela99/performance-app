@@ -45,14 +45,15 @@ export default function LoginPage() {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({}); // Clear previous errors
     try {
       await login({
         email: formData.email,
         password: formData.password,
       });
       router.push('/dashboard');
-    } catch (error) {
-      setErrors({ submit: 'Invalid email or password' });
+    } catch (error: any) {
+      setErrors({ submit: error.message || 'Invalid email or password' });
     } finally {
       setIsLoading(false);
     }
@@ -180,6 +181,34 @@ export default function LoginPage() {
               Sign In
             </Button>
           </form>
+
+          {/* Test Credentials */}
+          <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+            <p className="text-xs font-semibold text-purple-900 mb-2">🔑 Test Credentials:</p>
+            <div className="space-y-2 text-xs">
+              <div className="flex items-start gap-2">
+                <span className="font-medium text-purple-700 min-w-[60px]">Admin:</span>
+                <div className="flex-1">
+                  <p className="text-gray-700">admin@example.com</p>
+                  <p className="text-gray-600">Password: Admin@123</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-medium text-purple-700 min-w-[60px]">Manager:</span>
+                <div className="flex-1">
+                  <p className="text-gray-700">manager@example.com</p>
+                  <p className="text-gray-600">Password: Manager@123</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-medium text-purple-700 min-w-[60px]">Employee:</span>
+                <div className="flex-1">
+                  <p className="text-gray-700">employee@example.com</p>
+                  <p className="text-gray-600">Password: Employee@123</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Divider */}
           <div className="relative my-8">
