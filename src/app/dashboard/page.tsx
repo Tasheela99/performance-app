@@ -1,19 +1,20 @@
 'use client';
 
+import { AdminManagerCharts, EmployeeCharts } from '@/components/dashboard/DashboardCharts';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useAppraisal } from '@/contexts/AppraisalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-    faArrowRight,
-    faChartLine,
-    faCheckCircle,
-    faClipboardList,
-    faClock,
-    faFileAlt,
-    faPenToSquare,
-    faStar,
-    faTrophy,
+  faArrowRight,
+  faChartLine,
+  faCheckCircle,
+  faClipboardList,
+  faClock,
+  faFileAlt,
+  faPenToSquare,
+  faStar,
+  faTrophy,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useRouter } from 'next/navigation';
@@ -58,35 +59,6 @@ export default function DashboardPage() {
         </h1>
         <p className="text-gray-500 text-sm mt-1">Here&apos;s your performance management overview</p>
       </div>
-
-      {/* Profile card */}
-      <Card className="mb-8 bg-gradient-to-r from-purple-600 to-purple-800 text-white !p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0">
-              {user.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
-            </div>
-            <div>
-              <h3 className="text-lg font-bold">{user.name}</h3>
-              <p className="text-purple-200 text-sm">{user.email}</p>
-              <div className="flex items-center gap-2 mt-1.5">
-                <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-semibold capitalize ${roleBadgeClass(user.role)}`}>
-                  {user.role}
-                </span>
-                {user.department && (
-                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20">
-                    {user.department}
-                  </span>
-                )}
-                {user.position && (
-                  <span className="text-[10px] text-purple-200">• {user.position}</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </Card>
-
       {/* Role-specific content */}
       {user.role === 'admin' || user.role === 'manager' ? (
         <AdminManagerDashboard />
@@ -139,6 +111,11 @@ function AdminManagerDashboard() {
             </div>
           </Card>
         ))}
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <AdminManagerCharts />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -288,6 +265,11 @@ function EmployeeDashboard() {
             </div>
           </Card>
         ))}
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <EmployeeCharts />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
