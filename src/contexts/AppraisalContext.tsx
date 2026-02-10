@@ -247,7 +247,7 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
           // Update submission in state
           setSubmissions(prev => prev.map(s => 
             s.id === existingSubmission.id 
-              ? { ...s, ...submission, status: data.submission.status }
+              ? { ...s, responses: submission.responses, overallComment: submission.overallComment }
               : s
           ));
           
@@ -256,8 +256,8 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
           // This shouldn't happen as submissions are created when templates are published
           console.warn('Submission not found for template:', submission.templateId);
           // Reload data to ensure we have the latest submissions
-          loadData();
-          throw new Error('Submission not found');
+          await loadData();
+          throw new Error('Submission not found. Please refresh the page.');
         }
       } catch (error) {
         console.error('Failed to save submission:', error);
@@ -280,12 +280,15 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
             ? { ...s, status: 'submitted' as any, submittedAt: new Date().toISOString() }
             : s
         ));
+        
+        // Reload data to ensure consistency across all views
+        await loadData();
       } catch (error) {
         console.error('Failed to submit appraisal:', error);
         throw error;
       }
     },
-    [],
+    [loadData],
   );
 
   // ── Review operations (admin/manager) ────────────────────────────
@@ -324,13 +327,11 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
   // ── Query helpers ─────────────────────────────────────────────────
   const getTemplatesForUser = useCallback(
     (user: User): AppraisalTemplate[] => {
-      if (user.role === 'admin') {
+      if (user.role === 'admin' || user.role === 'manager') {
+        // Admin and Manager can see all templates
         return templates;
-      } else if (user.role === 'manager') {
-        return templates.filter(
-          (t) => t.createdBy === user.id || t.assignedTo.includes(user.id)
-        );
       } else {
+        // Employee can only see templates assigned to them
         return templates.filter((t) => t.assignedTo.includes(user.id));
       }
     },

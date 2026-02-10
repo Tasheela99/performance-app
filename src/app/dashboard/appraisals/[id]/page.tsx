@@ -114,7 +114,7 @@ export default function AppraisalDetailPage() {
               const review = getReviewForSubmission(sub.id);
               const statusBadge = {
                 pending: { color: 'bg-gray-100 text-gray-600', icon: faClock },
-                'in-progress': { color: 'bg-blue-100 text-blue-700', icon: faFileAlt },
+                'inProgress': { color: 'bg-blue-100 text-blue-700', icon: faFileAlt },
                 submitted: { color: 'bg-yellow-100 text-yellow-800', icon: faFileAlt },
                 reviewed: { color: 'bg-green-100 text-green-800', icon: faCheckCircle },
               }[sub.status];

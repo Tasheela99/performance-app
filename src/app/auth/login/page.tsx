@@ -117,7 +117,7 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-md">
           {/* Logo/Brand */}
-          <div className="text-center mb-8">
+          <div className="text-start mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-2xl mb-4 shadow-lg">
               <FontAwesomeIcon icon={faLock} className="text-white text-2xl" />
             </div>
@@ -181,35 +181,6 @@ export default function LoginPage() {
               Sign In
             </Button>
           </form>
-
-          {/* Test Credentials */}
-          <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-            <p className="text-xs font-semibold text-purple-900 mb-2">🔑 Test Credentials:</p>
-            <div className="space-y-2 text-xs">
-              <div className="flex items-start gap-2">
-                <span className="font-medium text-purple-700 min-w-[60px]">Admin:</span>
-                <div className="flex-1">
-                  <p className="text-gray-700">admin@example.com</p>
-                  <p className="text-gray-600">Password: Admin@123</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="font-medium text-purple-700 min-w-[60px]">Manager:</span>
-                <div className="flex-1">
-                  <p className="text-gray-700">manager@example.com</p>
-                  <p className="text-gray-600">Password: Manager@123</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="font-medium text-purple-700 min-w-[60px]">Employee:</span>
-                <div className="flex-1">
-                  <p className="text-gray-700">employee@example.com</p>
-                  <p className="text-gray-600">Password: Employee@123</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Divider */}
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">

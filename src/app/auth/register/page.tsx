@@ -4,7 +4,7 @@ import RegisterIllustration from '@/components/illustrations/RegisterIllustratio
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useAuth } from '@/contexts/AuthContext';
-import { faCheckCircle, faEnvelope, faLock, faRocket, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faBriefcase, faBuilding, faCheckCircle, faEnvelope, faLock, faRocket, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -18,6 +18,8 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    department: '',
+    position: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -138,14 +140,11 @@ export default function RegisterPage() {
 
       {/* Right side - Registration Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50 min-h-screen">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-lg">
           {/* Header */}
           <div className="mb-4">
-            <Link href="/" className="inline-flex items-center gap-2 text-xs text-gray-600 hover:text-gray-900 mb-4">
-              ← Back to home
-            </Link>
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-600 rounded-2xl mb-2 shadow-xl">
-              <FontAwesomeIcon icon={faRocket} className="text-white text-xl" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-2xl mb-4 shadow-lg">
+              <FontAwesomeIcon icon={faRocket} className="text-white text-2xl" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">Start Your Journey</h1>
             <p className="text-gray-600 text-sm">Create your account and unlock powerful tools</p>
@@ -175,6 +174,28 @@ export default function RegisterPage() {
                 error={errors.email}
                 icon={faEnvelope}
               />
+
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  type="text"
+                  name="department"
+                  label="Department"
+                  placeholder="Engineering"
+                  value={formData.department}
+                  onChange={handleChange}
+                  icon={faBuilding}
+                />
+
+                <Input
+                  type="text"
+                  name="position"
+                  label="Position"
+                  placeholder="Developer"
+                  value={formData.position}
+                  onChange={handleChange}
+                  icon={faBriefcase}
+                />
+              </div>
 
               <Input
                 type="password"

@@ -54,7 +54,7 @@ export default function MyAppraisalsPage() {
               statusLabel = 'Submitted – Awaiting Review';
               statusColor = 'bg-yellow-100 text-yellow-800';
               statusIcon = faClock;
-            } else if (submission?.status === 'in-progress') {
+            } else if (submission?.status === 'inProgress') {
               statusLabel = 'In Progress';
               statusColor = 'bg-blue-100 text-blue-700';
               statusIcon = faPenToSquare;
@@ -128,7 +128,7 @@ export default function MyAppraisalsPage() {
 
                     {/* Actions */}
                     <div className="flex gap-2">
-                      {!submission || submission.status === 'pending' || submission.status === 'in-progress' ? (
+                      {!submission || submission.status === 'pending' || submission.status === 'inProgress' ? (
                         <Button
                           onClick={() => router.push(`/dashboard/my-appraisals/${template.id}`)}
                           className="!py-2 !px-4 !text-xs"

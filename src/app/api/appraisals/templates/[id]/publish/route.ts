@@ -30,7 +30,7 @@ export async function POST(
 
     // Check if template exists and user has permission
     const template = await prisma.appraisalTemplate.findFirst({
-      where: user.role === 'admin' 
+      where: (user.role === 'admin' || user.role === 'manager')
         ? { id }
         : { id, createdById: user.id },
       include: {

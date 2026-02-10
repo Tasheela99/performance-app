@@ -45,7 +45,7 @@ export function AdminManagerCharts() {
   const submissionStatusData = useMemo(() => {
     const statusCounts = {
       pending: 0,
-      'in-progress': 0,
+      'inProgress': 0,
       submitted: 0,
       reviewed: 0
     };
@@ -56,7 +56,7 @@ export function AdminManagerCharts() {
     
     return [
       { name: 'Pending', value: statusCounts.pending, color: CHART_COLORS.warning[0] },
-      { name: 'In Progress', value: statusCounts['in-progress'], color: CHART_COLORS.info[0] },
+      { name: 'In Progress', value: statusCounts['inProgress'], color: CHART_COLORS.info[0] },
       { name: 'Submitted', value: statusCounts.submitted, color: CHART_COLORS.warning[1] },
       { name: 'Reviewed', value: statusCounts.reviewed, color: CHART_COLORS.success[0] },
     ].filter(item => item.value > 0);

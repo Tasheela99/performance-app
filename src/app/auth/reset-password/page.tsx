@@ -119,14 +119,14 @@ export default function ResetPasswordPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-lg">
             <div className="text-center mb-8">
-              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 shadow-lg ${
+              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg ${
                 isSuccess 
                   ? 'bg-green-600'
                   : 'bg-purple-600'
               }`}>
                 <FontAwesomeIcon 
                   icon={isSuccess ? faCheckCircle : faShieldCheck} 
-                  className="text-white text-3xl" 
+                  className="text-white text-2xl" 
                 />
               </div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2">

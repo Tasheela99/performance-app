@@ -74,38 +74,55 @@ export default function FillAppraisalPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    // Simulate delay
-    await new Promise((r) => setTimeout(r, 500));
-    saveSubmission({
-      templateId,
-      employeeId: user.id,
-      employeeName: user.name,
-      responses,
-      overallComment,
-      status: 'in-progress',
-    });
-    setSavedMsg('Draft saved successfully!');
-    setTimeout(() => setSavedMsg(''), 3000);
-    setIsSaving(false);
+    try {
+      await saveSubmission({
+        templateId,
+        employeeId: user.id,
+        employeeName: user.name,
+        responses,
+        overallComment,
+        status: 'inProgress',
+      });
+      setSavedMsg('Draft saved successfully!');
+      setTimeout(() => setSavedMsg(''), 3000);
+    } catch (error) {
+      console.error('Failed to save draft:', error);
+      alert('Failed to save draft. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 500));
-    saveSubmission({
-      templateId,
-      employeeId: user.id,
-      employeeName: user.name,
-      responses,
-      overallComment,
-      status: 'submitted',
-      submittedAt: new Date().toISOString(),
-    });
-    // If this is a new submission with an auto-generated id, we need the submission id
-    // The context's saveSubmission handles upsert, and status will be 'submitted'
-    setIsSubmitting(false);
-    setShowSubmitConfirm(false);
-    router.push('/dashboard/my-appraisals');
+    if (!existingSubmission) {
+      alert('Submission not found. Please refresh the page.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      // First, save the current responses
+      await saveSubmission({
+        templateId,
+        employeeId: user.id,
+        employeeName: user.name,
+        responses,
+        overallComment,
+        status: 'inProgress',
+      });
+      
+      // Then submit the appraisal
+      await submitAppraisal(existingSubmission.id);
+      
+      setShowSubmitConfirm(false);
+      router.push('/dashboard/my-appraisals');
+    } catch (error: any) {
+      console.error('Failed to submit appraisal:', error);
+      alert(error.message || 'Failed to submit appraisal. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

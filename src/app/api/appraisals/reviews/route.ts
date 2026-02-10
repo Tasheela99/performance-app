@@ -17,23 +17,8 @@ export async function GET(request: NextRequest) {
 
     let whereClause: any = {};
 
-    if (userRole === 'admin') {
-      // Admin can see all reviews
-      if (submissionId) whereClause.submissionId = submissionId;
-    } else if (userRole === 'manager') {
-      // Manager can see reviews they created or for templates they own
-      whereClause = {
-        OR: [
-          { reviewerId: userId },
-          {
-            submission: {
-              template: {
-                createdById: userId
-              }
-            }
-          }
-        ]
-      };
+    if (userRole === 'admin' || userRole === 'manager') {
+      // Admin and Manager can see all reviews
       if (submissionId) whereClause.submissionId = submissionId;
     } else {
       // Employee can see reviews of their submissions
@@ -162,7 +147,7 @@ export async function POST(request: NextRequest) {
 
     // Check if submission exists and user has permission to review it
     const submission = await prisma.appraisalSubmission.findFirst({
-      where: user.role === 'admin' 
+      where: (user.role === 'admin' || user.role === 'manager')
         ? { id: submissionId }
         : {
             id: submissionId,

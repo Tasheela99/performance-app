@@ -18,6 +18,8 @@ export interface RegisterData {
   email: string;
   password: string;
   confirmPassword: string;
+  department?: string;
+  position?: string;
 }
 
 export interface ForgotPasswordData {

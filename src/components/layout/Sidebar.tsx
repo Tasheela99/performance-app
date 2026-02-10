@@ -2,14 +2,15 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import {
-    faBars,
-    faChartBar,
-    faClipboardList,
-    faFileAlt,
-    faGauge,
-    faRightFromBracket,
-    faTimes,
-    faUserShield
+  faBars,
+  faChartBar,
+  faClipboardList,
+  faFileAlt,
+  faGauge,
+  faRightFromBracket,
+  faTimes,
+  faUserShield,
+  faUsers
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Link from 'next/link';
@@ -29,6 +30,12 @@ const navItems: NavItem[] = [
     href: '/dashboard',
     icon: faGauge,
     roles: ['admin', 'manager', 'employee'],
+  },
+  {
+    label: 'User Management',
+    href: '/dashboard/users',
+    icon: faUsers,
+    roles: ['admin'],
   },
   {
     label: 'Appraisal Templates',

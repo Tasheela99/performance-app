@@ -26,21 +26,8 @@ export async function GET(
     if (userRole === 'employee') {
       // Employee can only access their own submissions
       whereClause.employeeId = userId;
-    } else if (userRole === 'manager') {
-      // Manager can access submissions for templates they created or their own
-      whereClause = {
-        id,
-        OR: [
-          { employeeId: userId },
-          {
-            template: {
-              createdById: userId
-            }
-          }
-        ]
-      };
     }
-    // Admin can access all submissions (no additional where clause)
+    // Admin and Manager can access all submissions (no additional where clause)
 
     const submission = await prisma.appraisalSubmission.findFirst({
       where: whereClause,

@@ -21,20 +21,8 @@ export async function GET(
     const userRole = authResult.user!.role;
 
     // Build query based on role
-    const whereClause = userRole === 'admin' 
+    const whereClause = (userRole === 'admin' || userRole === 'manager')
       ? { id }
-      : userRole === 'manager' 
-      ? {
-          id,
-          OR: [
-            { createdById: userId },
-            {
-              assignments: {
-                some: { employeeId: userId }
-              }
-            }
-          ]
-        }
       : {
           id,
           assignments: {
@@ -136,7 +124,7 @@ export async function PUT(
 
     // Check if template exists and user has permission to update it
     const existingTemplate = await prisma.appraisalTemplate.findFirst({
-      where: user.role === 'admin' 
+      where: (user.role === 'admin' || user.role === 'manager')
         ? { id }
         : { id, createdById: user.id },
       include: {
@@ -271,7 +259,7 @@ export async function DELETE(
 
     // Check if template exists and user has permission to delete it
     const template = await prisma.appraisalTemplate.findFirst({
-      where: user.role === 'admin' 
+      where: (user.role === 'admin' || user.role === 'manager')
         ? { id }
         : { id, createdById: user.id },
       include: {

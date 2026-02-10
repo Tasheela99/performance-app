@@ -31,23 +31,8 @@ export async function GET(
           employeeId: userId
         }
       };
-    } else if (userRole === 'manager') {
-      // Manager can access reviews they created or for templates they own
-      whereClause = {
-        id,
-        OR: [
-          { reviewerId: userId },
-          {
-            submission: {
-              template: {
-                createdById: userId
-              }
-            }
-          }
-        ]
-      };
     }
-    // Admin can access all reviews (no additional where clause)
+    // Admin and Manager can access all reviews (no additional where clause)
 
     const review = await prisma.appraisalReview.findFirst({
       where: whereClause,
@@ -176,7 +161,7 @@ export async function PUT(
 
     // Check if review exists and user has permission
     const review = await prisma.appraisalReview.findFirst({
-      where: user.role === 'admin' 
+      where: (user.role === 'admin' || user.role === 'manager')
         ? { id }
         : { id, reviewerId: user.id },
     });

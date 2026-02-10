@@ -18,24 +18,8 @@ export async function GET(request: NextRequest) {
 
     let whereClause: any = {};
 
-    if (userRole === 'admin') {
-      // Admin can see all submissions
-      if (templateId) whereClause.templateId = templateId;
-      if (employeeId) whereClause.employeeId = employeeId;
-    } else if (userRole === 'manager') {
-      // Manager can see submissions for templates they created or employees under them
-      whereClause = {
-        OR: [
-          {
-            template: {
-              createdById: userId
-            }
-          },
-          {
-            employeeId: userId // Manager's own submissions
-          }
-        ]
-      };
+    if (userRole === 'admin' || userRole === 'manager') {
+      // Admin and Manager can see all submissions
       if (templateId) whereClause.templateId = templateId;
       if (employeeId) whereClause.employeeId = employeeId;
     } else {

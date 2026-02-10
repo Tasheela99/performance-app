@@ -15,7 +15,7 @@ export interface AssignableEmployee {
 export type AppraisalStatus = 'draft' | 'published' | 'closed';
 
 /** Status of an employee's submission against a template */
-export type SubmissionStatus = 'pending' | 'in-progress' | 'submitted' | 'reviewed';
+export type SubmissionStatus = 'pending' | 'inProgress' | 'submitted' | 'reviewed';
 
 /** A single goal / KPI item within a template */
 export interface AppraisalGoal {

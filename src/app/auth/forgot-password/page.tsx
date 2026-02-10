@@ -106,11 +106,8 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-sm">
           {/* Header */}
           <div className="mb-4">
-            <Link href="/auth/login" className="inline-flex items-center gap-2 text-xs text-gray-600 hover:text-gray-900 mb-4">
-              <FontAwesomeIcon icon={faArrowLeft} /> Back to login
-            </Link>
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-600 rounded-2xl mb-2 shadow-xl">
-              <FontAwesomeIcon icon={faPaperPlane} className="text-white text-xl" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-2xl mb-4 shadow-lg">
+              <FontAwesomeIcon icon={faPaperPlane} className="text-white text-2xl" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">Forgot Password?</h1>
             <p className="text-gray-600 text-sm">

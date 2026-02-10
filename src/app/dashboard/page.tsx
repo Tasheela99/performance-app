@@ -19,7 +19,6 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useRouter } from 'next/navigation';
 
-/* ── helpers ──────────────────────────────────────────────────────── */
 function roleBadgeClass(role: string) {
   if (role === 'admin') return 'bg-red-500/30 border-red-300/50';
   if (role === 'manager') return 'bg-blue-500/30 border-blue-300/50';
@@ -44,7 +43,6 @@ function scoreBarClass(score: number) {
   return 'bg-red-500';
 }
 
-/* ── main page ────────────────────────────────────────────────────── */
 export default function DashboardPage() {
   const { user } = useAuth();
 
@@ -52,14 +50,12 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 lg:p-8">
-      {/* Welcome */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">
           Welcome back, {user.name.split(' ')[0]}! 👋
         </h1>
         <p className="text-gray-500 text-sm mt-1">Here&apos;s your performance management overview</p>
       </div>
-      {/* Role-specific content */}
       {user.role === 'admin' || user.role === 'manager' ? (
         <AdminManagerDashboard />
       ) : (
@@ -69,7 +65,6 @@ export default function DashboardPage() {
   );
 }
 
-// ─── Admin / Manager Dashboard ──────────────────────────────────────
 function AdminManagerDashboard() {
   const { user } = useAuth();
   const { templates, submissions, reviews, getTemplatesForUser } = useAppraisal();
@@ -96,7 +91,6 @@ function AdminManagerDashboard() {
 
   return (
     <>
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map((stat) => (
           <Card key={stat.key} className="!p-4 hover:shadow-lg transition-shadow">
@@ -113,13 +107,11 @@ function AdminManagerDashboard() {
         ))}
       </div>
 
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <AdminManagerCharts />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Pending reviews */}
         <Card>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900">Pending Reviews</h3>
@@ -165,7 +157,6 @@ function AdminManagerDashboard() {
           )}
         </Card>
 
-        {/* Recent templates */}
         <Card>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900">Recent Templates</h3>
@@ -211,7 +202,6 @@ function AdminManagerDashboard() {
   );
 }
 
-// ─── Employee Dashboard ─────────────────────────────────────────────
 function EmployeeDashboard() {
   const { user } = useAuth();
   const {
@@ -229,7 +219,7 @@ function EmployeeDashboard() {
     submission: getSubmissionForEmployee(t.id, user.id),
   }));
 
-  const pending = mySubmissions.filter((s) => !s.submission || s.submission.status === 'pending' || s.submission.status === 'in-progress');
+  const pending = mySubmissions.filter((s) => !s.submission || s.submission.status === 'pending' || s.submission.status === 'inProgress');
   const submitted = mySubmissions.filter((s) => s.submission?.status === 'submitted');
   const reviewed = mySubmissions.filter((s) => s.submission?.status === 'reviewed');
 
@@ -250,7 +240,6 @@ function EmployeeDashboard() {
 
   return (
     <>
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map((stat) => (
           <Card key={stat.key} className="!p-4 hover:shadow-lg transition-shadow">
@@ -267,13 +256,11 @@ function EmployeeDashboard() {
         ))}
       </div>
 
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <EmployeeCharts />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Pending appraisals */}
         <Card>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900">Appraisals To Complete</h3>
@@ -317,7 +304,6 @@ function EmployeeDashboard() {
           )}
         </Card>
 
-        {/* Scored appraisals */}
         <Card>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900">Your Scores</h3>
