@@ -3,13 +3,13 @@
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useAuth } from '@/contexts/AuthContext';
-import { faCheckCircle, faLock, faSpellCheck } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faLock, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { resetPassword } = useAuth();
@@ -110,7 +110,7 @@ export default function ResetPasswordPage() {
                   : 'bg-purple-600'
               }`}>
                 <FontAwesomeIcon 
-                  icon={isSuccess ? faCheckCircle : faSpellCheck} 
+                  icon={isSuccess ? faCheckCircle : faLock} 
                   className="text-white text-2xl" 
                 />
               </div>
@@ -231,7 +231,7 @@ export default function ResetPasswordPage() {
                   isLoading={isLoading}
                   className="py-3 text-base font-semibold bg-purple-600 hover:bg-purple-700"
                 >
-                  {!isLoading && <FontAwesomeIcon icon={faSpellCheck} />}
+                  {!isLoading && <FontAwesomeIcon icon={faShieldHalved} />}
                   Reset Password
                 </Button>
 
@@ -248,5 +248,17 @@ export default function ResetPasswordPage() {
           </div>
         </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

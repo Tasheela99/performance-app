@@ -198,8 +198,8 @@ export const PerformanceInsights: React.FC = () => {
                   <div key={tracking.officerId} className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">{tracking.officer.name}</p>
-                        <p className="text-xs text-gray-600">{tracking.officer.department}</p>
+                        <p className="font-medium text-gray-900">{tracking.officer?.name || 'Unknown'}</p>
+                        <p className="text-xs text-gray-600">{tracking.officer?.department || 'N/A'}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-bold text-yellow-600">
@@ -238,8 +238,8 @@ export const PerformanceInsights: React.FC = () => {
                   <div key={tracking.officerId} className="p-3 bg-purple-50 rounded-lg border border-purple-200">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">{tracking.officer.name}</p>
-                        <p className="text-xs text-gray-600">{tracking.officer.department}</p>
+                        <p className="font-medium text-gray-900">{tracking.officer?.name || 'Unknown'}</p>
+                        <p className="text-xs text-gray-600">{tracking.officer?.department || 'N/A'}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-bold text-purple-600">

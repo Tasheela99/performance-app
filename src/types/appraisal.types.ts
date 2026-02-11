@@ -24,6 +24,13 @@ export interface PerformanceClassification {
 /** Officer performance tracking for recognition */
 export interface OfficerPerformanceTracking {
   officerId: string;
+  officer?: {
+    id: string;
+    name: string;
+    email: string;
+    department?: string;
+    position?: string;
+  };
   consecutiveExcellentYears: number;
   totalIncrements: number;
   eligibleForPresidentialAward: boolean;
