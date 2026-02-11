@@ -38,8 +38,11 @@ function ResetPasswordForm() {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain uppercase, lowercase, and number';
+    } else {
+      const passwordRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+      if (!passwordRegex.test(formData.password)) {
+        newErrors.password = 'Password must contain uppercase, lowercase, and number';
+      }
     }
 
     if (!formData.confirmPassword) {
@@ -93,10 +96,15 @@ function ResetPasswordForm() {
     }
   };
 
+  const hasUpperCase = /[A-Z]/.test(formData.password);
+  const hasLowerCase = /[a-z]/.test(formData.password);
+  const hasNumber = /\d/.test(formData.password);
+  const hasMinLength = formData.password.length >= 8;
+
   return (
     <div className="min-h-screen flex">
       {/* Left side - Illustration */}
-      <div className="hidden lg:flex lg:w-1/2  items-center justify-center p-12 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden">
         <img src="/auth/reset-password.png" alt="Reset Password" className="w-full max-w-2xl h-auto object-contain" />
       </div>
 
@@ -189,19 +197,19 @@ function ResetPasswordForm() {
                     <p className="text-xs font-semibold text-gray-700 mb-2">Password must include:</p>
                     <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
                       <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${formData.password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${hasMinLength ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                         <span>8+ characters</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${/[A-Z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${hasUpperCase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                         <span>Uppercase letter</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${/[a-z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${hasLowerCase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                         <span>Lowercase letter</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${/\d/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${hasNumber ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                         <span>Number</span>
                       </div>
                     </div>
