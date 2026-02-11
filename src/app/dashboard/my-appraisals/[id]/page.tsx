@@ -6,11 +6,14 @@ import { useAppraisal } from '@/contexts/AppraisalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { GoalResponse } from '@/types/appraisal.types';
 import {
-    faArrowLeft,
-    faCheckCircle,
-    faFloppyDisk,
-    faPaperPlane,
-    faStar,
+  faArrowLeft,
+  faCalendar,
+  faCheckCircle,
+  faClock,
+  faFloppyDisk,
+  faPaperPlane,
+  faStar,
+  faUser,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useParams, useRouter } from 'next/navigation';
@@ -18,7 +21,7 @@ import { useEffect, useState } from 'react';
 
 export default function FillAppraisalPage() {
   const { user } = useAuth();
-  const { templates, getSubmissionForEmployee, getReviewForSubmission, saveSubmission, submitAppraisal } =
+  const { templates, getSubmissionForEmployee, getReviewForSubmission, saveSubmission, submitAppraisal, refreshData } =
     useAppraisal();
   const router = useRouter();
   const params = useParams();
@@ -53,6 +56,14 @@ export default function FillAppraisalPage() {
       }
     }
   }, [template, existingSubmission]);
+
+  // Refresh data if template not found initially (might be newly published)
+  useEffect(() => {
+    if (user && templateId && !template) {
+      console.log('Template not found, refreshing data...');
+      refreshData();
+    }
+  }, [user, templateId, template, refreshData]);
 
   if (!user || !template) {
     return (
@@ -126,7 +137,7 @@ export default function FillAppraisalPage() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-4xl mx-auto">
+    <div className="p-6 lg:p-8 max-w-9xl mx-auto">
       {/* Back */}
       <button
         onClick={() => router.push('/dashboard/my-appraisals')}
@@ -140,9 +151,18 @@ export default function FillAppraisalPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-1">{template.title}</h1>
         <p className="text-gray-500 text-sm">{template.description}</p>
         <div className="flex flex-wrap gap-4 mt-3 text-xs text-gray-500">
-          <span>📅 Period: {template.period}</span>
-          <span>⏰ Deadline: {new Date(template.deadline).toLocaleDateString()}</span>
-          <span>👤 Assigned by: {template.createdByName}</span>
+          <span className="flex items-center gap-1">
+            <FontAwesomeIcon icon={faCalendar} className="text-purple-500" />
+            Period: {template.period}
+          </span>
+          <span className="flex items-center gap-1">
+            <FontAwesomeIcon icon={faClock} className="text-orange-500" />
+            Deadline: {new Date(template.deadline).toLocaleDateString()}
+          </span>
+          <span className="flex items-center gap-1">
+            <FontAwesomeIcon icon={faUser} className="text-blue-500" />
+            Assigned by: {template.createdByName}
+          </span>
         </div>
       </div>
 

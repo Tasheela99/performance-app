@@ -1,19 +1,32 @@
-import { PERFORMANCE_SECTIONS } from '@/constants/appraisal';
+import { getPerformanceClassification, PERFORMANCE_SECTIONS, SECTION_WEIGHTAGES } from '@/constants/appraisal';
 import { prisma } from './db';
 
 /**
- * Migrates existing goals to have sections assigned if they don't already have them.
- * This should be run once after the schema update to ensure backward compatibility.
+ * Migrates existing goals to have proper sections assigned.
+ * Goals with default 'tasks' section that match competency categories
+ * will be reassigned to the competencies section.
  */
 export async function migrateGoalSections() {
   try {
     console.log('Starting goal section migration...');
     
-    // Get all goals without sections assigned
+    // Competency-related categories that should be in the competencies section
+    const competencyCategories = [
+      'Soft Skills',
+      'Leadership', 
+      'Communication',
+      'Teamwork',
+      'Customer Focus'
+    ];
+
+    // Find goals that are currently in 'tasks' section but should be in 'competencies'
     const goalsToUpdate = await prisma.goal.findMany({
       where: {
-        section: null,
-      }
+        section: PERFORMANCE_SECTIONS.TASKS,
+        category: {
+          in: competencyCategories,
+        },
+      },
     });
 
     if (goalsToUpdate.length === 0) {
@@ -21,33 +34,19 @@ export async function migrateGoalSections() {
       return;
     }
 
-    console.log(`Found ${goalsToUpdate.length} goals to migrate.`);
+    console.log(`Found ${goalsToUpdate.length} goals to migrate to competencies section.`);
 
-    // Update goals in batches
-    for (const goal of goalsToUpdate) {
-      // Default assignment based on category (you can customize this logic)
-      let section = PERFORMANCE_SECTIONS.TASKS;
-      
-      // Assign competency-related categories to competencies section
-      const competencyCategories = [
-        'Soft Skills',
-        'Leadership', 
-        'Communication',
-        'Teamwork',
-        'Customer Focus'
-      ];
-      
-      if (competencyCategories.includes(goal.category)) {
-        section = PERFORMANCE_SECTIONS.COMPETENCIES;
-      }
-      
-      await prisma.goal.update({
-        where: { id: goal.id },
-        data: { section }
-      });
-    }
+    // Update goals in a batch
+    const updateResult = await prisma.goal.updateMany({
+      where: {
+        id: { in: goalsToUpdate.map(g => g.id) },
+      },
+      data: {
+        section: PERFORMANCE_SECTIONS.COMPETENCIES,
+      },
+    });
 
-    console.log(`Successfully migrated ${goalsToUpdate.length} goals.`);
+    console.log(`Successfully migrated ${updateResult.count} goals to competencies section.`);
   } catch (error) {
     console.error('Error migrating goal sections:', error);
     throw error;
@@ -62,12 +61,14 @@ export async function migrateReviewScores() {
   try {
     console.log('Starting review scores migration...');
     
-    // Get all reviews that need migration (those without section scores)
+    // Get all reviews — recalculate scores for any that have taskScore=0 and competencyScore=0
+    // (indicating they haven't been properly calculated yet)
     const reviewsToUpdate = await prisma.appraisalReview.findMany({
       where: {
         AND: [
           { taskScore: 0 },
-          { competencyScore: 0 }
+          { competencyScore: 0 },
+          { overallScore: { gt: 0 } } // Only reviews that have an overall score but missing section scores
         ]
       },
       include: {
@@ -123,12 +124,23 @@ export async function migrateReviewScores() {
       taskScore = totalTaskWeightage > 0 ? taskScore / totalTaskWeightage : 0;
       competencyScore = totalCompetencyWeightage > 0 ? competencyScore / totalCompetencyWeightage : 0;
 
+      // Calculate properly weighted overall score
+      const overallScore = Math.round(
+        (taskScore * SECTION_WEIGHTAGES.tasks) / 100 +
+        (competencyScore * SECTION_WEIGHTAGES.competencies) / 100
+      );
+
+      // Get performance classification
+      const classification = getPerformanceClassification(overallScore);
+
       // Update the review with calculated scores
       await prisma.appraisalReview.update({
         where: { id: review.id },
         data: {
           taskScore: Math.round(taskScore),
-          competencyScore: Math.round(competencyScore)
+          competencyScore: Math.round(competencyScore),
+          overallScore,
+          performanceClassification: classification.key,
         }
       });
     }

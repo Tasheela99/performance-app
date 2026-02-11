@@ -116,16 +116,19 @@ export interface AppraisalContextType {
   isLoading: boolean;
   isLoadingEmployees: boolean;
   isLoadingPerformance: boolean;
+  lastRefreshTime: number;
+  // Data refresh
+  refreshData: () => Promise<void>;
   // Template operations (admin/manager)
-  createTemplate: (template: Omit<AppraisalTemplate, 'id' | 'createdAt'>) => void;
-  updateTemplate: (id: string, updates: Partial<AppraisalTemplate>) => void;
-  publishTemplate: (id: string) => void;
-  deleteTemplate: (id: string) => void;
+  createTemplate: (template: Omit<AppraisalTemplate, 'id' | 'createdAt'>) => Promise<void>;
+  updateTemplate: (id: string, updates: Partial<AppraisalTemplate>) => Promise<void>;
+  publishTemplate: (id: string) => Promise<void>;
+  deleteTemplate: (id: string) => Promise<void>;
   // Submission operations (employee)
-  saveSubmission: (submission: Omit<AppraisalSubmission, 'id'>) => void;
-  submitAppraisal: (submissionId: string) => void;
+  saveSubmission: (submission: Omit<AppraisalSubmission, 'id'>) => Promise<void>;
+  submitAppraisal: (submissionId: string) => Promise<void>;
   // Review operations (admin/manager)
-  submitReview: (review: Omit<AppraisalReview, 'id' | 'reviewedAt'>) => void;
+  submitReview: (review: Omit<AppraisalReview, 'id' | 'reviewedAt'>) => Promise<void>;
   // Performance tracking operations (admin/manager)
   loadPerformanceTrackings: () => Promise<void>;
   getEligibleOfficers: (type: 'increment' | 'presidential_award') => Promise<OfficerPerformanceTracking[]>;

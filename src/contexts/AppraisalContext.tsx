@@ -70,6 +70,7 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
   const [isLoadingPerformance, setIsLoadingPerformance] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
 
   // Load data from APIs
   const loadData = useCallback(async () => {
@@ -96,6 +97,7 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       setTemplates(templatesData.templates || []);
       setSubmissions(submissionsData.submissions || []);
       setReviews(reviewsData.reviews || []);
+      setLastRefreshTime(Date.now());
     } catch (error) {
       console.error('Failed to load appraisal data:', error);
       // Reset data on error
@@ -131,6 +133,12 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Force refresh data function
+  const refreshData = useCallback(async () => {
+    console.log('Manually refreshing appraisal data...');
+    await loadData();
+  }, [loadData]);
+
   // Load data on mount and when token changes
   useEffect(() => {
     loadData();
@@ -144,6 +152,23 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
+  }, [loadData]);
+
+  // Auto-refresh data for employees every 30 seconds to catch newly published templates
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token) return;
+
+    const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : null;
+    if (user?.role === 'employee') {
+      console.log('Setting up auto-refresh for employee...');
+      const interval = setInterval(() => {
+        console.log('Auto-refreshing data for employee...');
+        loadData();
+      }, 30000); // Refresh every 30 seconds
+
+      return () => clearInterval(interval);
+    }
   }, [loadData]);
 
   // ── Template operations (admin / manager) ────────────────────────
@@ -201,7 +226,13 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
         ));
         
         // Reload data to get new submissions
-        loadData();
+        await loadData();
+        
+        // Small delay and reload again to ensure all systems are updated
+        setTimeout(() => {
+          console.log('Secondary refresh after template publish...');
+          loadData();
+        }, 1000);
       } catch (error) {
         console.error('Failed to publish template:', error);
         throw error;
@@ -408,8 +439,8 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       performanceTrackings,
       isLoading,
       isLoadingEmployees,
-      isLoadingPerformance,
-      createTemplate,
+      isLoadingPerformance,      lastRefreshTime,
+      refreshData,      createTemplate,
       updateTemplate,
       publishTemplate,
       deleteTemplate,
@@ -433,6 +464,8 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       isLoadingEmployees,
       isLoadingPerformance,
+      lastRefreshTime,
+      refreshData,
       createTemplate,
       updateTemplate,
       publishTemplate,
