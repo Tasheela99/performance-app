@@ -65,7 +65,6 @@ export default function UserManagementPage() {
   useEffect(() => {
     if (user && user.role !== 'admin') {
       router.push('/dashboard');
-      return;
     }
   }, [user, router]);
 
@@ -145,7 +144,7 @@ export default function UserManagementPage() {
         throw new Error(error.error || 'Failed to update user');
       }
 
-      const updatedUser = { ...newRow };
+      const updatedUser = newRow as User;
       setUsers(users.map((row) => (row.id === newRow.id ? updatedUser : row)));
       return updatedUser;
     } catch (error) {
@@ -159,14 +158,6 @@ export default function UserManagementPage() {
       case 'admin': return faUserShield;
       case 'manager': return faUserTie;
       default: return faUser;
-    }
-  };
-
-  const getRoleBadgeClass = (role: string) => {
-    switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800 border border-red-200';
-      case 'manager': return 'bg-blue-100 text-blue-800 border border-blue-200';
-      default: return 'bg-green-100 text-green-800 border border-green-200';
     }
   };
 
@@ -279,10 +270,8 @@ export default function UserManagementPage() {
               key="save"
               icon={<SaveIcon />}
               label="Save"
-              sx={{
-                color: 'primary.main',
-              }}
               onClick={handleSaveClick(id as string)}
+              color="primary"
             />,
             <GridActionsCellItem
               key="cancel"
@@ -326,7 +315,7 @@ export default function UserManagementPage() {
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase()));
+                         user.department?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === 'all' || user.role === selectedRole;
     return matchesSearch && matchesRole;
   });
