@@ -1,11 +1,12 @@
 'use client';
 
 import {
-  AppraisalContextType,
-  AppraisalReview,
-  AppraisalSubmission,
-  AppraisalTemplate,
-  AssignableEmployee,
+    AppraisalContextType,
+    AppraisalReview,
+    AppraisalSubmission,
+    AppraisalTemplate,
+    AssignableEmployee,
+    OfficerPerformanceTracking,
 } from '@/types/appraisal.types';
 import { User } from '@/types/auth.types';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -65,8 +66,11 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
   const [submissions, setSubmissions] = useState<AppraisalSubmission[]>([]);
   const [reviews, setReviews] = useState<AppraisalReview[]>([]);
   const [employees, setEmployees] = useState<AssignableEmployee[]>([]);
+  const [performanceTrackings, setPerformanceTrackings] = useState<OfficerPerformanceTracking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+  const [isLoadingPerformance, setIsLoadingPerformance] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
 
   // Load data from APIs
   const loadData = useCallback(async () => {
@@ -93,6 +97,7 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       setTemplates(templatesData.templates || []);
       setSubmissions(submissionsData.submissions || []);
       setReviews(reviewsData.reviews || []);
+      setLastRefreshTime(Date.now());
     } catch (error) {
       console.error('Failed to load appraisal data:', error);
       // Reset data on error
@@ -128,6 +133,12 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Force refresh data function
+  const refreshData = useCallback(async () => {
+    console.log('Manually refreshing appraisal data...');
+    await loadData();
+  }, [loadData]);
+
   // Load data on mount and when token changes
   useEffect(() => {
     loadData();
@@ -141,6 +152,23 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
+  }, [loadData]);
+
+  // Auto-refresh data for employees every 30 seconds to catch newly published templates
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token) return;
+
+    const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : null;
+    if (user?.role === 'employee') {
+      console.log('Setting up auto-refresh for employee...');
+      const interval = setInterval(() => {
+        console.log('Auto-refreshing data for employee...');
+        loadData();
+      }, 30000); // Refresh every 30 seconds
+
+      return () => clearInterval(interval);
+    }
   }, [loadData]);
 
   // ── Template operations (admin / manager) ────────────────────────
@@ -198,7 +226,13 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
         ));
         
         // Reload data to get new submissions
-        loadData();
+        await loadData();
+        
+        // Small delay and reload again to ensure all systems are updated
+        setTimeout(() => {
+          console.log('Secondary refresh after template publish...');
+          loadData();
+        }, 1000);
       } catch (error) {
         console.error('Failed to publish template:', error);
         throw error;
@@ -250,8 +284,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
               ? { ...s, responses: submission.responses, overallComment: submission.overallComment }
               : s
           ));
-          
-          return { ...existingSubmission, ...submission };
         } else {
           // This shouldn't happen as submissions are created when templates are published
           console.warn('Submission not found for template:', submission.templateId);
@@ -300,7 +332,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({
             submissionId: review.submissionId,
             goalReviews: review.goalReviews,
-            overallScore: review.overallScore,
             overallComment: review.overallComment,
           }),
         });
@@ -323,6 +354,41 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     },
     [],
   );
+
+  // ── Performance tracking operations (admin/manager) ─────────────
+  const loadPerformanceTrackings = useCallback(async () => {
+    try {
+      setIsLoadingPerformance(true);
+      const token = getAuthToken();
+      
+      if (!token) {
+        setPerformanceTrackings([]);
+        setIsLoadingPerformance(false);
+        return;
+      }
+
+      const data = await employeeApiCall('/officers/performance');
+      setPerformanceTrackings(data.performanceTrackings || []);
+    } catch (error) {
+      console.error('Failed to load performance trackings:', error);
+      setPerformanceTrackings([]);
+    } finally {
+      setIsLoadingPerformance(false);
+    }
+  }, []);
+
+  const getEligibleOfficers = useCallback(async (type: 'increment' | 'presidential_award') => {
+    try {
+      const data = await employeeApiCall('/officers/performance', {
+        method: 'POST',
+        body: JSON.stringify({ type }),
+      });
+      return data.eligibleOfficers || [];
+    } catch (error) {
+      console.error('Failed to get eligible officers:', error);
+      return [];
+    }
+  }, []);
 
   // ── Query helpers ─────────────────────────────────────────────────
   const getTemplatesForUser = useCallback(
@@ -368,15 +434,19 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       submissions,
       reviews,
       employees,
+      performanceTrackings,
       isLoading,
       isLoadingEmployees,
-      createTemplate,
+      isLoadingPerformance,      lastRefreshTime,
+      refreshData,      createTemplate,
       updateTemplate,
       publishTemplate,
       deleteTemplate,
       saveSubmission,
       submitAppraisal,
       submitReview,
+      loadPerformanceTrackings,
+      getEligibleOfficers,
       loadEmployees,
       getTemplatesForUser,
       getSubmissionsForTemplate,
@@ -388,8 +458,12 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       submissions,
       reviews,
       employees,
+      performanceTrackings,
       isLoading,
       isLoadingEmployees,
+      isLoadingPerformance,
+      lastRefreshTime,
+      refreshData,
       createTemplate,
       updateTemplate,
       publishTemplate,
@@ -397,6 +471,8 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       saveSubmission,
       submitAppraisal,
       submitReview,
+      loadPerformanceTrackings,
+      getEligibleOfficers,
       loadEmployees,
       getTemplatesForUser,
       getSubmissionsForTemplate,

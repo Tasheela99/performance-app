@@ -1,3 +1,4 @@
+import { PerformanceSection } from '@/constants/appraisal';
 import { User } from './auth.types';
 
 /** Employee data for assignment purposes */
@@ -9,6 +10,31 @@ export interface AssignableEmployee {
   department: string;
   position: string;
   createdAt: string;
+}
+
+/** Performance classification info */
+export interface PerformanceClassification {
+  key: string;
+  min: number;
+  max: number;
+  label: string;
+  color: string;
+}
+
+/** Officer performance tracking for recognition */
+export interface OfficerPerformanceTracking {
+  officerId: string;
+  officer?: {
+    id: string;
+    name: string;
+    email: string;
+    department?: string;
+    position?: string;
+  };
+  consecutiveExcellentYears: number;
+  totalIncrements: number;
+  eligibleForPresidentialAward: boolean;
+  lastExcellentYear?: string;
 }
 
 /** Status of an appraisal template */
@@ -23,6 +49,7 @@ export interface AppraisalGoal {
   title: string;
   description: string;
   category: string;
+  section: PerformanceSection; // 'tasks' or 'competencies'
   weightage: number; // percentage, e.g. 20 = 20%
 }
 
@@ -78,7 +105,10 @@ export interface AppraisalReview {
   reviewerId: string;
   reviewerName: string;
   goalReviews: GoalReview[];
-  overallScore: number; // 0-100
+  taskScore: number; // Score for tasks section (0-100)
+  competencyScore: number; // Score for competencies section (0-100)
+  overallScore: number; // Weighted total score (0-100+)
+  performanceClassification: PerformanceClassification;
   overallComment: string;
   reviewedAt: string;
 }
@@ -89,18 +119,26 @@ export interface AppraisalContextType {
   submissions: AppraisalSubmission[];
   reviews: AppraisalReview[];
   employees: AssignableEmployee[];
+  performanceTrackings: OfficerPerformanceTracking[];
   isLoading: boolean;
   isLoadingEmployees: boolean;
+  isLoadingPerformance: boolean;
+  lastRefreshTime: number;
+  // Data refresh
+  refreshData: () => Promise<void>;
   // Template operations (admin/manager)
-  createTemplate: (template: Omit<AppraisalTemplate, 'id' | 'createdAt'>) => void;
-  updateTemplate: (id: string, updates: Partial<AppraisalTemplate>) => void;
-  publishTemplate: (id: string) => void;
-  deleteTemplate: (id: string) => void;
+  createTemplate: (template: Omit<AppraisalTemplate, 'id' | 'createdAt'>) => Promise<void>;
+  updateTemplate: (id: string, updates: Partial<AppraisalTemplate>) => Promise<void>;
+  publishTemplate: (id: string) => Promise<void>;
+  deleteTemplate: (id: string) => Promise<void>;
   // Submission operations (employee)
-  saveSubmission: (submission: Omit<AppraisalSubmission, 'id'>) => void;
-  submitAppraisal: (submissionId: string) => void;
+  saveSubmission: (submission: Omit<AppraisalSubmission, 'id'>) => Promise<void>;
+  submitAppraisal: (submissionId: string) => Promise<void>;
   // Review operations (admin/manager)
-  submitReview: (review: Omit<AppraisalReview, 'id' | 'reviewedAt'>) => void;
+  submitReview: (review: Omit<AppraisalReview, 'id' | 'reviewedAt'>) => Promise<void>;
+  // Performance tracking operations (admin/manager)
+  loadPerformanceTrackings: () => Promise<void>;
+  getEligibleOfficers: (type: 'increment' | 'presidential_award') => Promise<OfficerPerformanceTracking[]>;
   // Employee operations
   loadEmployees: () => Promise<void>;
   // Queries

@@ -5,29 +5,59 @@ import Card from '@/components/ui/Card';
 import { useAppraisal } from '@/contexts/AppraisalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-    faCheckCircle,
-    faClock,
-    faFileAlt,
-    faPenToSquare,
-    faStar,
+  faCalendarAlt,
+  faCheckCircle,
+  faClock,
+  faExclamationTriangle,
+  faFileAlt,
+  faPenToSquare,
+  faRefresh,
+  faStar,
+  faUser,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useRouter } from 'next/navigation';
 
 export default function MyAppraisalsPage() {
   const { user } = useAuth();
-  const { getTemplatesForUser, getSubmissionForEmployee, getReviewForSubmission } = useAppraisal();
+  const { getTemplatesForUser, getSubmissionForEmployee, getReviewForSubmission, refreshData, isLoading, lastRefreshTime } = useAppraisal();
   const router = useRouter();
 
   if (!user) return null;
 
   const myTemplates = getTemplatesForUser(user);
 
+  const handleRefresh = async () => {
+    try {
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+    }
+  };
+
   return (
     <div className="p-6 lg:p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">My Appraisals</h1>
-        <p className="text-gray-500 text-sm mt-1">View and complete the appraisals assigned to you</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">My Appraisals</h1>
+          <p className="text-gray-500 text-sm mt-1">View and complete the appraisals assigned to you</p>
+        </div>
+        <div className="text-right">
+          <Button
+            variant="outline"
+            icon={faRefresh}
+            onClick={handleRefresh}
+            isLoading={isLoading}
+            className="flex items-center gap-2"
+          >
+            Refresh
+          </Button>
+          {lastRefreshTime && (
+            <p className="text-xs text-gray-400 mt-1">
+              Last updated: {new Date(lastRefreshTime).toLocaleTimeString()}
+            </p>
+          )}
+        </div>
       </div>
 
       {myTemplates.length === 0 ? (
@@ -80,8 +110,9 @@ export default function MyAppraisalsPage() {
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-bold text-gray-900">{template.title}</h3>
                           {isDeadlineSoon && (
-                            <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium animate-pulse">
-                              ⚠ Due Soon
+                            <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium animate-pulse flex items-center gap-1">
+                              <FontAwesomeIcon icon={faExclamationTriangle} />
+                              Due Soon
                             </span>
                           )}
                         </div>
@@ -95,10 +126,22 @@ export default function MyAppraisalsPage() {
 
                     {/* Meta */}
                     <div className="flex flex-wrap gap-4 text-xs text-gray-500 mb-4">
-                      <span>📅 Period: {template.period}</span>
-                      <span>⏰ Deadline: {new Date(template.deadline).toLocaleDateString()}</span>
-                      <span>📋 {template.goals.length} Goals</span>
-                      <span>👤 By: {template.createdByName}</span>
+                      <span className="flex items-center gap-1.5">
+                      <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400" />
+                      Period: {template.period}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                      <FontAwesomeIcon icon={faClock} className="text-gray-400" />
+                      Deadline: {new Date(template.deadline).toLocaleDateString()}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                      <FontAwesomeIcon icon={faFileAlt} className="text-gray-400" />
+                      {template.goals.length} Goals
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                      <FontAwesomeIcon icon={faUser} className="text-gray-400" />
+                      By: {template.createdByName}
+                      </span>
                     </div>
 
                     {/* Goals preview */}

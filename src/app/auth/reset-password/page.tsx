@@ -1,16 +1,15 @@
 'use client';
 
-import ResetPasswordIllustration from '@/components/illustrations/ResetPasswordIllustration';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useAuth } from '@/contexts/AuthContext';
-import { faCheckCircle, faLock, faShieldCheck } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faLock, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { resetPassword } = useAuth();
@@ -39,8 +38,11 @@ export default function ResetPasswordPage() {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain uppercase, lowercase, and number';
+    } else {
+      const passwordRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+      if (!passwordRegex.test(formData.password)) {
+        newErrors.password = 'Password must contain uppercase, lowercase, and number';
+      }
     }
 
     if (!formData.confirmPassword) {
@@ -94,25 +96,16 @@ export default function ResetPasswordPage() {
     }
   };
 
+  const hasUpperCase = /[A-Z]/.test(formData.password);
+  const hasLowerCase = /[a-z]/.test(formData.password);
+  const hasNumber = /\d/.test(formData.password);
+  const hasMinLength = formData.password.length >= 8;
+
   return (
     <div className="min-h-screen flex">
       {/* Left side - Illustration */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 to-purple-800 items-center justify-center p-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-        <div className="absolute top-20 right-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-pulse"></div>
-        <div className="absolute bottom-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-pulse" style={{animationDelay: '1.5s'}}></div>
-        
-        <div className="relative z-10 text-white">
-          <div className="max-w-sm mx-auto mb-8">
-            <ResetPasswordIllustration />
-          </div>
-          <div className="text-center">
-            <h2 className="text-3xl font-bold mb-4">Secure Password Reset</h2>
-            <p className="text-white text-lg">
-              Create a strong password to protect your account and sensitive data.
-            </p>
-          </div>
-        </div>
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden">
+        <img src="/auth/reset-password.png" alt="Reset Password" className="w-full max-w-2xl h-auto object-contain" />
       </div>
 
       {/* Right side - Reset Form */}
@@ -125,7 +118,7 @@ export default function ResetPasswordPage() {
                   : 'bg-purple-600'
               }`}>
                 <FontAwesomeIcon 
-                  icon={isSuccess ? faCheckCircle : faShieldCheck} 
+                  icon={isSuccess ? faCheckCircle : faLock} 
                   className="text-white text-2xl" 
                 />
               </div>
@@ -140,7 +133,7 @@ export default function ResetPasswordPage() {
               </p>
             </div>
 
-            {errors.token ? (
+            {errors.token && (
               <div className="p-6 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-2xl mb-6">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
@@ -157,7 +150,9 @@ export default function ResetPasswordPage() {
                   </div>
                 </div>
               </div>
-            ) : isSuccess ? (
+            )}
+
+            {!errors.token && isSuccess && (
               <div className="text-center space-y-6">
                 <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl">
                   <div className="flex items-center justify-center gap-3 mb-3">
@@ -181,7 +176,9 @@ export default function ResetPasswordPage() {
                   </Button>
                 </Link>
               </div>
-            ) : (
+            )}
+
+            {!errors.token && !isSuccess && (
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <Input
@@ -200,19 +197,19 @@ export default function ResetPasswordPage() {
                     <p className="text-xs font-semibold text-gray-700 mb-2">Password must include:</p>
                     <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
                       <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${formData.password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${hasMinLength ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                         <span>8+ characters</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${/[A-Z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${hasUpperCase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                         <span>Uppercase letter</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${/[a-z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${hasLowerCase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                         <span>Lowercase letter</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${/\d/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${hasNumber ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                         <span>Number</span>
                       </div>
                     </div>
@@ -242,7 +239,7 @@ export default function ResetPasswordPage() {
                   isLoading={isLoading}
                   className="py-3 text-base font-semibold bg-purple-600 hover:bg-purple-700"
                 >
-                  {!isLoading && <FontAwesomeIcon icon={faShieldCheck} />}
+                  {!isLoading && <FontAwesomeIcon icon={faShieldHalved} />}
                   Reset Password
                 </Button>
 
@@ -258,7 +255,18 @@ export default function ResetPasswordPage() {
             )}
           </div>
         </div>
-      </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

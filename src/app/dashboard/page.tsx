@@ -1,20 +1,21 @@
 'use client';
 
 import { AdminManagerCharts, EmployeeCharts } from '@/components/dashboard/DashboardCharts';
+// import { PerformanceInsights } from '@/components/dashboard/PerformanceInsights';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useAppraisal } from '@/contexts/AppraisalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  faArrowRight,
-  faChartLine,
-  faCheckCircle,
-  faClipboardList,
-  faClock,
-  faFileAlt,
-  faPenToSquare,
-  faStar,
-  faTrophy,
+    faArrowRight,
+    faChartLine,
+    faCheckCircle,
+    faClipboardList,
+    faClock,
+    faFileAlt,
+    faPenToSquare,
+    faStar,
+    faTrophy,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useRouter } from 'next/navigation';
@@ -110,6 +111,11 @@ function AdminManagerDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <AdminManagerCharts />
       </div>
+
+      {/* Performance Insights */}
+      {/* <div className="mb-8">
+        <PerformanceInsights />
+      </div> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>

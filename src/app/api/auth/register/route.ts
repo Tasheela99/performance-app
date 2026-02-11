@@ -1,12 +1,13 @@
 import { hashPassword, isStrongPassword, isValidEmail } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { createOTPExpiry, generateOTP, sendVerificationEmail } from '@/lib/email';
 import { Role } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, password, role, department, position } = body;
+    const { name, email, password, role, department, position, acceptedTerms } = body;
 
     // Validation
     if (!name || !email || !password) {
@@ -43,20 +44,60 @@ export async function POST(request: NextRequest) {
     // Check if user already exists using Prisma
     const existingUser = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
-      select: { id: true },
+      select: { 
+        id: true, 
+        name: true, 
+        isVerified: true,
+        verificationTokenExpiry: true
+      },
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 409 }
-      );
+      if (existingUser.isVerified) {
+        return NextResponse.json(
+          { error: 'User with this email already exists' },
+          { status: 409 }
+        );
+      } else {
+        // User exists but not verified, generate new OTP
+        const otp = generateOTP();
+        const otpExpiry = createOTPExpiry();
+
+        await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            verificationToken: otp,
+            verificationTokenExpiry: otpExpiry,
+          },
+        });
+
+        // Send verification email
+        try {
+          await sendVerificationEmail(email, existingUser.name, otp);
+          console.log(`🔐 Verification email sent to ${email} with OTP: ${otp}`);
+        } catch (emailError) {
+          console.error('Failed to send verification email:', emailError);
+        }
+
+        return NextResponse.json(
+          {
+            message: 'A verification code has been sent to your email address',
+            needsVerification: true,
+            email: email.toLowerCase(),
+          },
+          { status: 200 }
+        );
+      }
     }
 
     // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Create user using Prisma
+    // Generate OTP for email verification
+    const otp = generateOTP();
+    const otpExpiry = createOTPExpiry();
+
+    // Create user using Prisma (unverified)
     const user = await prisma.user.create({
       data: {
         name,
@@ -65,6 +106,11 @@ export async function POST(request: NextRequest) {
         role: userRole,
         department: department || null,
         position: position || null,
+        isVerified: false,
+        verificationToken: otp,
+        verificationTokenExpiry: otpExpiry,
+        acceptedTerms: acceptedTerms || false,
+        acceptedTermsAt: acceptedTerms ? new Date() : null,
       },
       select: {
         id: true,
@@ -73,13 +119,22 @@ export async function POST(request: NextRequest) {
         role: true,
         department: true,
         position: true,
-        createdAt: true,
+        isVerified: true,
       },
     });
 
+    // Send verification email
+    try {
+      await sendVerificationEmail(email, name, otp);
+      console.log(`🔐 Verification email sent to ${email} with OTP: ${otp}`);
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+      // Don't fail registration if email fails, user can request resend
+    }
+
     return NextResponse.json(
       {
-        message: 'User registered successfully',
+        message: 'Account created successfully. Please check your email for verification code.',
         user: {
           id: user.id,
           name: user.name,
@@ -87,7 +142,10 @@ export async function POST(request: NextRequest) {
           role: user.role,
           department: user.department,
           position: user.position,
+          isVerified: user.isVerified,
         },
+        needsVerification: true,
+        email: user.email,
       },
       { status: 201 }
     );

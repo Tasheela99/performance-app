@@ -1,20 +1,38 @@
 'use client';
 
-import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-    faChartLine,
-    faEdit,
-    faSave,
-    faSearch,
-    faTimes,
-    faUser,
-    faUsers,
-    faUserShield,
-    faUserTie
+  faSearch,
+  faUser,
+  faUsers,
+  faUserShield,
+  faUserTie
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import CancelIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import {
+  Avatar,
+  Box,
+  Chip,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select
+} from '@mui/material';
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridColDef,
+  GridEventListener,
+  GridRowEditStopReasons,
+  GridRowModel,
+  GridRowModes,
+  GridRowModesModel
+} from '@mui/x-data-grid';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -23,29 +41,30 @@ interface User {
   name: string;
   email: string;
   role: 'admin' | 'manager' | 'employee';
+  avatar?: string;
   department?: string;
   position?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-interface EditingUser extends User {
-  isEditing: boolean;
-}
-
 export default function UserManagementPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [users, setUsers] = useState<EditingUser[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
+  const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
 
   // Redirect if not admin
   useEffect(() => {
     if (user && user.role !== 'admin') {
       router.push('/dashboard');
-      return;
     }
   }, [user, router]);
 
@@ -64,7 +83,7 @@ export default function UserManagementPage() {
       });
       if (response.ok) {
         const userData = await response.json();
-        setUsers(userData.map((u: User) => ({ ...u, isEditing: false })));
+        setUsers(userData);
       } else {
         const error = await response.json();
         console.error('Failed to fetch users:', error.error);
@@ -76,18 +95,32 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleEdit = (userId: string) => {
-    setUsers(users.map(u => u.id === userId ? { ...u, isEditing: true } : u));
+  const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {
+    if (params.reason === GridRowEditStopReasons.rowFocusOut) {
+      event.defaultMuiPrevented = true;
+    }
   };
 
-  const handleCancel = (userId: string) => {
-    setUsers(users.map(u => u.id === userId ? { ...u, isEditing: false } : u));
+  const handleEditClick = (id: string) => () => {
+    if (id === user?.id) {
+      console.warn('Cannot edit your own role');
+      return;
+    }
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
   };
 
-  const handleSave = async (userId: string) => {
-    const userToUpdate = users.find(u => u.id === userId);
-    if (!userToUpdate) return;
+  const handleSaveClick = (id: string) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
+  };
 
+  const handleCancelClick = (id: string) => () => {
+    setRowModesModel({
+      ...rowModesModel,
+      [id]: { mode: GridRowModes.View, ignoreModifications: true },
+    });
+  };
+
+  const processRowUpdate = async (newRow: GridRowModel) => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/users', {
@@ -97,31 +130,27 @@ export default function UserManagementPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId,
-          role: userToUpdate.role,
-          name: userToUpdate.name,
-          email: userToUpdate.email,
-          department: userToUpdate.department,
-          position: userToUpdate.position,
+          userId: newRow.id,
+          role: newRow.role,
+          name: newRow.name,
+          email: newRow.email,
+          department: newRow.department,
+          position: newRow.position,
         }),
       });
 
-      if (response.ok) {
-        setUsers(users.map(u => u.id === userId ? { ...u, isEditing: false } : u));
-      } else {
+      if (!response.ok) {
         const error = await response.json();
-        alert(error.error || 'Failed to update user');
+        throw new Error(error.error || 'Failed to update user');
       }
+
+      const updatedUser = newRow as User;
+      setUsers(users.map((row) => (row.id === newRow.id ? updatedUser : row)));
+      return updatedUser;
     } catch (error) {
       console.error('Error updating user:', error);
-      alert('Failed to update user');
+      throw error;
     }
-  };
-
-  const handleInputChange = (userId: string, field: keyof User, value: string) => {
-    setUsers(users.map(u => 
-      u.id === userId ? { ...u, [field]: value } : u
-    ));
   };
 
   const getRoleIcon = (role: string) => {
@@ -132,18 +161,161 @@ export default function UserManagementPage() {
     }
   };
 
-  const getRoleBadgeClass = (role: string) => {
+  const getRoleChipColor = (role: string): "error" | "info" | "success" => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800 border border-red-200';
-      case 'manager': return 'bg-blue-100 text-blue-800 border border-blue-200';
-      default: return 'bg-green-100 text-green-800 border border-green-200';
+      case 'admin': return 'error';
+      case 'manager': return 'info';
+      default: return 'success';
     }
   };
+
+  const columns: GridColDef[] = [
+    {
+      field: 'user',
+      headerName: 'User',
+      width: 80,
+      editable: false,
+      sortable: false,
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start' }}>
+          <Avatar
+            src={params.row.avatar}
+            sx={{
+              bgcolor: params.row.avatar ? 'transparent' : '#7c3aed',
+              width: 40,
+              height: 40,
+              fontSize: '0.875rem',
+              fontWeight: 'bold'
+            }}
+          >
+            {!params.row.avatar && params.row.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+          </Avatar>
+        </Box>
+      ),
+    },
+    {
+      field: 'name',
+      headerName: 'Name',
+      minWidth: 120,
+      editable: true,
+      flex: 0.6,
+    },
+    {
+      field: 'email',
+      headerName: 'Email',
+      minWidth: 160,
+      editable: true,
+      flex: 0.8,
+    },
+    {
+      field: 'role',
+      headerName: 'Role',
+      minWidth: 140,
+      editable: true,
+      flex: 0.7,
+      type: 'singleSelect',
+      valueOptions: ['admin', 'manager', 'employee'],
+      renderCell: (params) => (
+        <Chip
+          label={params.value.charAt(0).toUpperCase() + params.value.slice(1)}
+          color={getRoleChipColor(params.value)}
+          variant="outlined"
+          icon={<FontAwesomeIcon icon={getRoleIcon(params.value)} />}
+          sx={{ 
+            minWidth: '100px',
+            opacity: params.id === user?.id ? 0.7 : 1, // Visual indicator for non-editable
+            '& .MuiChip-label': {
+              paddingLeft: '8px',
+              paddingRight: '12px'
+            }
+          }}
+        />
+      ),
+    },
+    {
+      field: 'department',
+      headerName: 'Department',
+      minWidth: 120,
+      editable: true,
+      flex: 0.6,
+      renderCell: (params) => params.value || '-',
+    },
+    {
+      field: 'position',
+      headerName: 'Position',
+      minWidth: 120,
+      editable: true,
+      flex: 0.6,
+      renderCell: (params) => params.value || '-',
+    },
+    {
+      field: 'createdAt',
+      headerName: 'Created',
+      minWidth: 100,
+      editable: false,
+      renderCell: (params) => new Date(params.value).toLocaleDateString(),
+    },
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Actions',
+      minWidth: 100,
+      cellClassName: 'actions',
+      getActions: ({ id, row }) => {
+        const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
+        
+        if (isInEditMode) {
+          return [
+            <GridActionsCellItem
+              key="save"
+              icon={<SaveIcon />}
+              label="Save"
+              onClick={handleSaveClick(id as string)}
+              color="primary"
+            />,
+            <GridActionsCellItem
+              key="cancel"
+              icon={<CancelIcon />}
+              label="Cancel"
+              className="textPrimary"
+              onClick={handleCancelClick(id as string)}
+              color="inherit"
+            />,
+          ];
+        }
+
+        const actions = [
+          <GridActionsCellItem
+            key="edit"
+            icon={<EditIcon />}
+            label="Edit"
+            className="textPrimary"
+            onClick={handleEditClick(id as string)}
+            color="inherit"
+          />,
+        ];
+
+        if (row.role === 'employee' || row.role === 'manager') {
+          actions.unshift(
+            <GridActionsCellItem
+              key="progress"
+              icon={<TrendingUpIcon />}
+              label="Progress"
+              onClick={() => router.push(`/dashboard/employees/${id}`)}
+              color="primary"
+            />
+          );
+        }
+
+        return actions;
+      },
+    },
+  ];
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase()));
+                         user.department?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === 'all' || user.role === selectedRole;
     return matchesSearch && matchesRole;
   });
@@ -199,169 +371,80 @@ export default function UserManagementPage() {
               />
             </div>
           </div>
-          <select
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="all">All Roles</option>
-            <option value="admin">Admin</option>
-            <option value="manager">Manager</option>
-            <option value="employee">Employee</option>
-          </select>
+          <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Role Filter</InputLabel>
+            <Select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              label="Role Filter"
+            >
+              <MenuItem value="all">All Roles</MenuItem>
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="manager">Manager</MenuItem>
+              <MenuItem value="employee">Employee</MenuItem>
+            </Select>
+          </FormControl>
         </div>
       </Card>
 
-      {/* Users Table */}
+      {/* Users DataGrid */}
       <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-4 px-4 font-semibold text-gray-900">User</th>
-                <th className="text-left py-4 px-4 font-semibold text-gray-900">Role</th>
-                <th className="text-left py-4 px-4 font-semibold text-gray-900">Department</th>
-                <th className="text-left py-4 px-4 font-semibold text-gray-900">Position</th>
-                <th className="text-left py-4 px-4 font-semibold text-gray-900">Created</th>
-                <th className="text-right py-4 px-4 font-semibold text-gray-900">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((userRow) => (
-                <tr key={userRow.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-4 px-4">
-                    {userRow.isEditing ? (
-                      <div className="space-y-2">
-                        <input
-                          type="text"
-                          value={userRow.name}
-                          onChange={(e) => handleInputChange(userRow.id, 'name', e.target.value)}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
-                        />
-                        <input
-                          type="email"
-                          value={userRow.email}
-                          onChange={(e) => handleInputChange(userRow.id, 'email', e.target.value)}
-                          className="w-full px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-sm font-bold">
-                          {userRow.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{userRow.name}</p>
-                          <p className="text-sm text-gray-500">{userRow.email}</p>
-                        </div>
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-4 px-4">
-                    {userRow.isEditing ? (
-                      <select
-                        value={userRow.role}
-                        onChange={(e) => handleInputChange(userRow.id, 'role', e.target.value)}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
-                        disabled={userRow.id === user?.id} // Can't change own role
-                      >
-                        <option value="admin">Admin</option>
-                        <option value="manager">Manager</option>
-                        <option value="employee">Employee</option>
-                      </select>
-                    ) : (
-                      <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${getRoleBadgeClass(userRow.role)}`}>
-                        <FontAwesomeIcon icon={getRoleIcon(userRow.role)} />
-                        {userRow.role.charAt(0).toUpperCase() + userRow.role.slice(1)}
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-4 px-4">
-                    {userRow.isEditing ? (
-                      <input
-                        type="text"
-                        value={userRow.department || ''}
-                        onChange={(e) => handleInputChange(userRow.id, 'department', e.target.value)}
-                        placeholder="Department"
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
-                      />
-                    ) : (
-                      <span className="text-sm text-gray-600">{userRow.department || '-'}</span>
-                    )}
-                  </td>
-                  <td className="py-4 px-4">
-                    {userRow.isEditing ? (
-                      <input
-                        type="text"
-                        value={userRow.position || ''}
-                        onChange={(e) => handleInputChange(userRow.id, 'position', e.target.value)}
-                        placeholder="Position"
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
-                      />
-                    ) : (
-                      <span className="text-sm text-gray-600">{userRow.position || '-'}</span>
-                    )}
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="text-sm text-gray-600">
-                      {new Date(userRow.createdAt).toLocaleDateString()}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-right">
-                    {userRow.isEditing ? (
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          className="!py-1 !px-3 !text-xs"
-                          onClick={() => handleSave(userRow.id)}
-                        >
-                          <FontAwesomeIcon icon={faSave} className="mr-1" />
-                          Save
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="!py-1 !px-3 !text-xs !text-red-600 !border-red-300 !hover:bg-red-50"
-                          onClick={() => handleCancel(userRow.id)}
-                        >
-                          <FontAwesomeIcon icon={faTimes} className="mr-1" />
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex justify-end gap-2">
-                        {(userRow.role === 'employee' || userRow.role === 'manager') && (
-                          <Button
-                            variant="outline"
-                            className="!py-1 !px-3 !text-xs !text-purple-600 !border-purple-300 !hover:bg-purple-50"
-                            onClick={() => router.push(`/dashboard/employees/${userRow.id}`)}
-                          >
-                            <FontAwesomeIcon icon={faChartLine} className="mr-1" />
-                            Progress
-                          </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          className="!py-1 !px-3 !text-xs"
-                          onClick={() => handleEdit(userRow.id)}
-                        >
-                          <FontAwesomeIcon icon={faEdit} className="mr-1" />
-                          Edit
-                        </Button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          
-          {filteredUsers.length === 0 && (
-            <div className="text-center py-12">
-              <FontAwesomeIcon icon={faUsers} className="text-4xl text-gray-300 mb-4" />
-              <p className="text-gray-500">No users found matching your criteria.</p>
-            </div>
-          )}
-        </div>
+        <Box sx={{ height: 400, width: '100%' }}>
+          <DataGrid
+            rows={filteredUsers}
+            columns={columns}
+            loading={loading}
+            editMode="row"
+            rowModesModel={rowModesModel}
+            onRowModesModelChange={setRowModesModel}
+            onRowEditStop={handleRowEditStop}
+            processRowUpdate={processRowUpdate}
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[5, 10, 25, 50]}
+            disableRowSelectionOnClick
+            disableColumnMenu
+            sx={{
+              border: 'none',
+              '& .MuiDataGrid-cell': {
+                borderBottom: '1px solid #f3f4f6',
+                padding: '8px 16px',
+              },
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: '#f9fafb',
+                borderBottom: '1px solid #e5e7eb',
+                fontWeight: 600,
+                color: '#111827',
+                minHeight: '44px!important',
+              },
+              '& .MuiDataGrid-row': {
+                minHeight: '52px!important',
+                '&:hover': {
+                  backgroundColor: '#f9fafb',
+                }
+              },
+              '& .MuiDataGrid-footerContainer': {
+                borderTop: '1px solid #e5e7eb',
+                backgroundColor: '#f9fafb',
+                minHeight: '48px',
+                padding: '8px 16px',
+              },
+              '& .MuiTablePagination-root': {
+                fontSize: '0.875rem',
+              },
+              '& .MuiTablePagination-displayedRows, & .MuiTablePagination-selectLabel': {
+                fontSize: '0.875rem',
+              },
+            }}
+            slotProps={{
+              pagination: {
+                showFirstButton: true,
+                showLastButton: true,
+              },
+            }}
+            getRowId={(row) => row.id}
+          />
+        </Box>
       </Card>
 
       {/* Statistics */}

@@ -8,23 +8,36 @@ datasource db {
 }
 
 model User {
-  id                   String                @id @default(uuid()) @db.Uuid
-  name                 String                @db.VarChar(255)
-  email                String                @unique @db.VarChar(255)
-  passwordHash         String                @map("password_hash") @db.VarChar(255)
-  role                 Role                  @default(employee)
-  department           String?               @db.VarChar(255)
-  position             String?               @db.VarChar(255)
-  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt            DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  appraisalReviews     AppraisalReview[]
-  appraisalSubmissions AppraisalSubmission[]
-  createdTemplates     AppraisalTemplate[]   @relation("TemplateCreator")
-  passwordResetTokens  PasswordResetToken[]
-  templateAssignments  TemplateAssignment[]
+  id                    String                        @id @default(uuid()) @db.Uuid
+  name                  String                        @db.VarChar(255)
+  email                 String                        @unique @db.VarChar(255)
+  passwordHash          String                        @map("password_hash") @db.VarChar(255)
+  role                  Role                          @default(employee)
+  department            String?                       @db.VarChar(255)
+  position              String?                       @db.VarChar(255)
+  avatar                String?                       @db.VarChar(500)
+  
+  // Email verification fields
+  isVerified            Boolean                       @default(false) @map("is_verified")
+  verificationToken     String?                       @unique @map("verification_token") @db.VarChar(255)
+  verificationTokenExpiry DateTime?                   @map("verification_token_expiry") @db.Timestamptz(6)
+  
+  // Terms acceptance
+  acceptedTerms         Boolean                       @default(false) @map("accepted_terms")
+  acceptedTermsAt       DateTime?                     @map("accepted_terms_at") @db.Timestamptz(6)
+  
+  createdAt             DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  appraisalReviews      AppraisalReview[]
+  appraisalSubmissions  AppraisalSubmission[]
+  createdTemplates      AppraisalTemplate[]           @relation("TemplateCreator")
+  passwordResetTokens   PasswordResetToken[]
+  templateAssignments   TemplateAssignment[]
+  performanceTracking   OfficerPerformanceTracking?
 
   @@index([email])
   @@index([role])
+  @@index([verificationToken])
   @@map("users")
 }
 
@@ -68,6 +81,7 @@ model Goal {
   title         String            @db.VarChar(255)
   description   String?
   category      String            @db.VarChar(100)
+  section       PerformanceSection @default(tasks)
   weightage     Int
   goalOrder     Int               @map("goal_order")
   createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -76,6 +90,7 @@ model Goal {
   template      AppraisalTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
   @@index([templateId])
+  @@index([section])
   @@map("goals")
 }
 
@@ -135,7 +150,10 @@ model AppraisalReview {
   submissionId   String              @unique @map("submission_id") @db.Uuid
   reviewerId     String              @map("reviewer_id") @db.Uuid
   reviewerName   String              @map("reviewer_name") @db.VarChar(255)
+  taskScore      Int                 @map("task_score") @default(0)
+  competencyScore Int                @map("competency_score") @default(0)
   overallScore   Int                 @map("overall_score")
+  performanceClassification String   @map("performance_classification") @db.VarChar(100) @default("NEEDS_CRITICAL_IMPROVEMENT")
   overallComment String?             @map("overall_comment")
   reviewedAt     DateTime            @default(now()) @map("reviewed_at") @db.Timestamptz(6)
   createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -146,6 +164,8 @@ model AppraisalReview {
 
   @@index([submissionId])
   @@index([reviewerId])
+  @@index([overallScore])
+  @@index([performanceClassification])
   @@map("appraisal_reviews")
 }
 
@@ -165,6 +185,23 @@ model GoalReview {
   @@map("goal_reviews")
 }
 
+model OfficerPerformanceTracking {
+  id                           String   @id @default(uuid()) @db.Uuid
+  officerId                    String   @unique @map("officer_id") @db.Uuid
+  consecutiveExcellentYears    Int      @map("consecutive_excellent_years") @default(0)
+  totalIncrements              Int      @map("total_increments") @default(0)
+  eligibleForPresidentialAward Boolean  @map("eligible_for_presidential_award") @default(false)
+  lastExcellentYear            String?  @map("last_excellent_year") @db.VarChar(10)
+  createdAt                    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  officer                      User     @relation(fields: [officerId], references: [id], onDelete: Cascade)
+
+  @@index([officerId])
+  @@index([consecutiveExcellentYears])
+  @@index([eligibleForPresidentialAward])
+  @@map("officer_performance_tracking")
+}
+
 enum Role {
   admin
   manager
@@ -182,4 +219,9 @@ enum SubmissionStatus {
   inProgress @map("in-progress")
   submitted
   reviewed
+}
+
+enum PerformanceSection {
+  tasks
+  competencies
 }

@@ -2,18 +2,18 @@
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { GOAL_CATEGORIES, PERIOD_OPTIONS } from '@/constants/appraisal';
+import { GOAL_CATEGORIES, PERFORMANCE_SECTIONS, PERIOD_OPTIONS } from '@/constants/appraisal';
 import { useAppraisal } from '@/contexts/AppraisalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppraisalGoal, AppraisalTemplate } from '@/types/appraisal.types';
 import {
-    faClipboardList,
-    faEye,
-    faPlus,
-    faSearch,
-    faTimes,
-    faTrash,
-    faUpload
+  faClipboardList,
+  faEye,
+  faPlus,
+  faSearch,
+  faTimes,
+  faTrash,
+  faUpload
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useRouter } from 'next/navigation';
@@ -224,7 +224,7 @@ function CreateTemplateModal({
   const { employees, isLoadingEmployees, loadEmployees } = useAppraisal();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [period, setPeriod] = useState(PERIOD_OPTIONS[0]);
+  const [period, setPeriod] = useState(PERIOD_OPTIONS[0] as string);
   const [deadline, setDeadline] = useState('');
   const [assignedTo, setAssignedTo] = useState<string[]>([]);
   const [goals, setGoals] = useState<AppraisalGoal[]>([]);
@@ -232,6 +232,7 @@ function CreateTemplateModal({
     title: '',
     description: '',
     category: GOAL_CATEGORIES[0],
+    section: PERFORMANCE_SECTIONS.TASKS,
     weightage: 25,
   });
 
@@ -246,18 +247,27 @@ function CreateTemplateModal({
       ...prev,
       { ...newGoal, id: `g-${Date.now()}` } as AppraisalGoal,
     ]);
-    setNewGoal({ title: '', description: '', category: GOAL_CATEGORIES[0], weightage: 25 });
+    setNewGoal({ 
+      title: '', 
+      description: '', 
+      category: GOAL_CATEGORIES[0], 
+      section: PERFORMANCE_SECTIONS.TASKS,
+      weightage: 25 
+    });
   };
 
   const removeGoal = (id: string) => setGoals((prev) => prev.filter((g) => g.id !== id));
 
   const totalWeight = goals.reduce((s, g) => s + g.weightage, 0);
+  const taskGoals = goals.filter(g => g.section === PERFORMANCE_SECTIONS.TASKS);
+  const competencyGoals = goals.filter(g => g.section === PERFORMANCE_SECTIONS.COMPETENCIES);
+  const hasValidSectionDistribution = taskGoals.length > 0 || competencyGoals.length > 0;
 
   const toggleAssignee = (id: string) => {
     setAssignedTo((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
   };
 
-  const canSubmit = title && description && deadline && goals.length > 0 && assignedTo.length > 0 && totalWeight === 100;
+  const canSubmit = title && description && deadline && goals.length > 0 && assignedTo.length > 0 && totalWeight === 100 && hasValidSectionDistribution;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -457,6 +467,14 @@ function CreateTemplateModal({
                 </span>
               </label>
             </div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs text-gray-500">
+                Distribution: {taskGoals.length} Task{taskGoals.length === 1 ? '' : 's'}, {competencyGoals.length} Competenc{competencyGoals.length === 1 ? 'y' : 'ies'}
+              </div>
+              {!hasValidSectionDistribution && (
+                <span className="text-xs text-red-500">⚠ At least one goal required in tasks or competencies</span>
+              )}
+            </div>
 
             {/* Existing goals */}
             {goals.length > 0 && (
@@ -469,6 +487,7 @@ function CreateTemplateModal({
                       <p className="text-xs text-gray-500 truncate">{g.description}</p>
                       <div className="flex gap-2 mt-1">
                         <span className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">{g.category}</span>
+                        <span className="text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full capitalize">{g.section}</span>
                         <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{g.weightage}%</span>
                       </div>
                     </div>
@@ -482,22 +501,30 @@ function CreateTemplateModal({
 
             {/* Add new goal form */}
             <div className="p-4 bg-purple-50/50 border border-purple-100 rounded-xl space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <input
                   value={newGoal.title || ''}
                   onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
                   placeholder="Goal title"
                   className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
                 />
+                <select
+                  value={newGoal.category || GOAL_CATEGORIES[0]}
+                  onChange={(e) => setNewGoal({ ...newGoal, category: e.target.value })}
+                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                >
+                  {GOAL_CATEGORIES.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
                 <div className="flex gap-2">
                   <select
-                    value={newGoal.category || GOAL_CATEGORIES[0]}
-                    onChange={(e) => setNewGoal({ ...newGoal, category: e.target.value })}
+                    value={newGoal.section || PERFORMANCE_SECTIONS.TASKS}
+                    onChange={(e) => setNewGoal({ ...newGoal, section: e.target.value as any })}
                     className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
                   >
-                    {GOAL_CATEGORIES.map((c) => (
-                      <option key={c}>{c}</option>
-                    ))}
+                    <option value={PERFORMANCE_SECTIONS.TASKS}>Tasks</option>
+                    <option value={PERFORMANCE_SECTIONS.COMPETENCIES}>Competencies</option>
                   </select>
                   <input
                     type="number"
