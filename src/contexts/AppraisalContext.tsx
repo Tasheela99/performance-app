@@ -1,11 +1,12 @@
 'use client';
 
 import {
-  AppraisalContextType,
-  AppraisalReview,
-  AppraisalSubmission,
-  AppraisalTemplate,
-  AssignableEmployee,
+    AppraisalContextType,
+    AppraisalReview,
+    AppraisalSubmission,
+    AppraisalTemplate,
+    AssignableEmployee,
+    OfficerPerformanceTracking,
 } from '@/types/appraisal.types';
 import { User } from '@/types/auth.types';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -65,8 +66,10 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
   const [submissions, setSubmissions] = useState<AppraisalSubmission[]>([]);
   const [reviews, setReviews] = useState<AppraisalReview[]>([]);
   const [employees, setEmployees] = useState<AssignableEmployee[]>([]);
+  const [performanceTrackings, setPerformanceTrackings] = useState<OfficerPerformanceTracking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+  const [isLoadingPerformance, setIsLoadingPerformance] = useState(false);
 
   // Load data from APIs
   const loadData = useCallback(async () => {
@@ -300,7 +303,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({
             submissionId: review.submissionId,
             goalReviews: review.goalReviews,
-            overallScore: review.overallScore,
             overallComment: review.overallComment,
           }),
         });
@@ -323,6 +325,41 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     },
     [],
   );
+
+  // ── Performance tracking operations (admin/manager) ─────────────
+  const loadPerformanceTrackings = useCallback(async () => {
+    try {
+      setIsLoadingPerformance(true);
+      const token = getAuthToken();
+      
+      if (!token) {
+        setPerformanceTrackings([]);
+        setIsLoadingPerformance(false);
+        return;
+      }
+
+      const data = await employeeApiCall('/officers/performance');
+      setPerformanceTrackings(data.performanceTrackings || []);
+    } catch (error) {
+      console.error('Failed to load performance trackings:', error);
+      setPerformanceTrackings([]);
+    } finally {
+      setIsLoadingPerformance(false);
+    }
+  }, []);
+
+  const getEligibleOfficers = useCallback(async (type: 'increment' | 'presidential_award') => {
+    try {
+      const data = await employeeApiCall('/officers/performance', {
+        method: 'POST',
+        body: JSON.stringify({ type }),
+      });
+      return data.eligibleOfficers || [];
+    } catch (error) {
+      console.error('Failed to get eligible officers:', error);
+      return [];
+    }
+  }, []);
 
   // ── Query helpers ─────────────────────────────────────────────────
   const getTemplatesForUser = useCallback(
@@ -368,8 +405,10 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       submissions,
       reviews,
       employees,
+      performanceTrackings,
       isLoading,
       isLoadingEmployees,
+      isLoadingPerformance,
       createTemplate,
       updateTemplate,
       publishTemplate,
@@ -377,6 +416,8 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       saveSubmission,
       submitAppraisal,
       submitReview,
+      loadPerformanceTrackings,
+      getEligibleOfficers,
       loadEmployees,
       getTemplatesForUser,
       getSubmissionsForTemplate,
@@ -388,8 +429,10 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       submissions,
       reviews,
       employees,
+      performanceTrackings,
       isLoading,
       isLoadingEmployees,
+      isLoadingPerformance,
       createTemplate,
       updateTemplate,
       publishTemplate,
@@ -397,6 +440,8 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       saveSubmission,
       submitAppraisal,
       submitReview,
+      loadPerformanceTrackings,
+      getEligibleOfficers,
       loadEmployees,
       getTemplatesForUser,
       getSubmissionsForTemplate,

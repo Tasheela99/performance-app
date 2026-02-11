@@ -87,6 +87,7 @@ export async function GET(request: NextRequest) {
         title: goal.title,
         description: goal.description || '',
         category: goal.category,
+        section: goal.section,
         weightage: goal.weightage,
       })),
       status: template.status,
@@ -149,6 +150,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate section distribution
+    const taskGoals = goals.filter((goal: any) => goal.section === 'tasks');
+    const competencyGoals = goals.filter((goal: any) => goal.section === 'competencies');
+    
+    if (taskGoals.length === 0 && competencyGoals.length === 0) {
+      return NextResponse.json(
+        { error: 'At least one goal must be assigned to either tasks or competencies section' },
+        { status: 400 }
+      );
+    }
+
     // Create template with goals in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Create template
@@ -171,6 +183,7 @@ export async function POST(request: NextRequest) {
             title: goal.title,
             description: goal.description || '',
             category: goal.category,
+            section: goal.section || 'tasks', // Default to tasks section
             weightage: goal.weightage,
             goalOrder: index + 1,
           },
