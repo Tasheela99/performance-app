@@ -8,24 +8,36 @@ datasource db {
 }
 
 model User {
-  id                   String                        @id @default(uuid()) @db.Uuid
-  name                 String                        @db.VarChar(255)
-  email                String                        @unique @db.VarChar(255)
-  passwordHash         String                        @map("password_hash") @db.VarChar(255)
-  role                 Role                          @default(employee)
-  department           String?                       @db.VarChar(255)
-  position             String?                       @db.VarChar(255)
-  createdAt            DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt            DateTime                      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  appraisalReviews     AppraisalReview[]
-  appraisalSubmissions AppraisalSubmission[]
-  createdTemplates     AppraisalTemplate[]           @relation("TemplateCreator")
-  passwordResetTokens  PasswordResetToken[]
-  templateAssignments  TemplateAssignment[]
-  performanceTracking  OfficerPerformanceTracking?
+  id                    String                        @id @default(uuid()) @db.Uuid
+  name                  String                        @db.VarChar(255)
+  email                 String                        @unique @db.VarChar(255)
+  passwordHash          String                        @map("password_hash") @db.VarChar(255)
+  role                  Role                          @default(employee)
+  department            String?                       @db.VarChar(255)
+  position              String?                       @db.VarChar(255)
+  avatar                String?                       @db.VarChar(500)
+  
+  // Email verification fields
+  isVerified            Boolean                       @default(false) @map("is_verified")
+  verificationToken     String?                       @unique @map("verification_token") @db.VarChar(255)
+  verificationTokenExpiry DateTime?                   @map("verification_token_expiry") @db.Timestamptz(6)
+  
+  // Terms acceptance
+  acceptedTerms         Boolean                       @default(false) @map("accepted_terms")
+  acceptedTermsAt       DateTime?                     @map("accepted_terms_at") @db.Timestamptz(6)
+  
+  createdAt             DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  appraisalReviews      AppraisalReview[]
+  appraisalSubmissions  AppraisalSubmission[]
+  createdTemplates      AppraisalTemplate[]           @relation("TemplateCreator")
+  passwordResetTokens   PasswordResetToken[]
+  templateAssignments   TemplateAssignment[]
+  performanceTracking   OfficerPerformanceTracking?
 
   @@index([email])
   @@index([role])
+  @@index([verificationToken])
   @@map("users")
 }
 

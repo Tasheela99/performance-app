@@ -1,10 +1,9 @@
 'use client';
 
-import RegisterIllustration from '@/components/illustrations/RegisterIllustration';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useAuth } from '@/contexts/AuthContext';
-import { faBriefcase, faBuilding, faCheckCircle, faEnvelope, faLock, faRocket, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faBriefcase, faBuilding, faEnvelope, faLock, faRocket, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -21,6 +20,7 @@ export default function RegisterPage() {
     department: '',
     position: '',
   });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -62,10 +62,20 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     try {
-      await register(formData);
-      router.push('/dashboard');
-    } catch (error) {
-      setErrors({ submit: 'Registration failed. Please try again.' });
+      const result = await register({
+        ...formData,
+        acceptedTerms
+      });
+      
+      if (result.needsVerification) {
+        // Redirect to email verification page
+        router.push(`/auth/verify-email?email=${encodeURIComponent(result.email)}`);
+      } else {
+        // Direct login (fallback for already verified users)
+        router.push('/dashboard');
+      }
+    } catch (error: any) {
+      setErrors({ submit: error.message || 'Registration failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -86,56 +96,9 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex overflow-hidden">
-      {/* Left side - Illustration & Benefits */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 to-purple-800 items-center justify-center p-4 relative overflow-hidden min-h-screen">
-        {/* Animated background */}
-        <div className="absolute top-10 right-20 w-64 h-64 bg-purple-400 rounded-full mix-blend-overlay filter blur-2xl opacity-30 animate-pulse"></div>
-        <div className="absolute bottom-10 left-10 w-48 h-48 bg-purple-500 rounded-full mix-blend-overlay filter blur-2xl opacity-30 animate-pulse" style={{animationDelay: '1s'}}></div>
-        
-        <div className="relative z-10 text-white max-w-xs">
-          <div className="mb-4 flex justify-center">
-            <div className="w-40 h-40">
-              <RegisterIllustration />
-            </div>
-          </div>
-          
-          <h2 className="text-2xl font-bold mb-3 text-center">Join Thousands of Teams</h2>
-          <p className="text-white text-xs mb-4 text-center">
-            Elevate your performance management with data-driven insights and seamless collaboration.
-          </p>
-          
-          <div className="space-y-3">
-            <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20">
-              <div className="w-8 h-8 rounded-xl bg-purple-400 flex items-center justify-center flex-shrink-0">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-white text-base" />
-              </div>
-              <div>
-                <h3 className="font-semibold mb-0.5 text-sm">360° Performance Reviews</h3>
-                <p className="text-white text-xs">Comprehensive feedback from peers, managers, and self-assessments</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20">
-              <div className="w-8 h-8 rounded-xl bg-purple-500 flex items-center justify-center flex-shrink-0">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-white text-base" />
-              </div>
-              <div>
-                <h3 className="font-semibold mb-0.5 text-sm">Goal Tracking & Analytics</h3>
-                <p className="text-white text-xs">Set objectives and track progress with powerful visualizations</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20">
-              <div className="w-8 h-8 rounded-xl bg-purple-600 flex items-center justify-center flex-shrink-0">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-white text-base" />
-              </div>
-              <div>
-                <h3 className="font-semibold mb-0.5 text-sm">Seamless Integration</h3>
-                <p className="text-white text-xs">Connect with your existing HR tools and workflows</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Left side - Illustration */}
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden min-h-screen">
+        <img src="/auth/register.png" alt="Register" className="w-full max-w-2xl h-auto object-contain" />
       </div>
 
       {/* Right side - Registration Form */}
@@ -229,7 +192,9 @@ export default function RegisterPage() {
             <div className="pt-1">
               <label className="flex items-start cursor-pointer group">
                 <input 
-                  type="checkbox" 
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)} 
                   className="mt-1 w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500 cursor-pointer" 
                   required 
                 />

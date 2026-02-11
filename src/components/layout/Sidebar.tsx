@@ -2,15 +2,16 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  faBars,
-  faChartBar,
-  faClipboardList,
-  faFileAlt,
-  faGauge,
-  faRightFromBracket,
-  faTimes,
-  faUserShield,
-  faUsers
+    faBars,
+    faChartBar,
+    faClipboardList,
+    faFileAlt,
+    faGauge,
+    faRightFromBracket,
+    faTimes,
+    faUser,
+    faUserShield,
+    faUsers
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Link from 'next/link';
@@ -48,6 +49,12 @@ const navItems: NavItem[] = [
     href: '/dashboard/my-appraisals',
     icon: faFileAlt,
     roles: ['employee'],
+  },
+  {
+    label: 'Account Settings',
+    href: '/dashboard/account',
+    icon: faUser,
+    roles: ['admin', 'manager', 'employee'],
   },
   {
     label: 'Review Submissions',
@@ -112,13 +119,21 @@ export default function Sidebar() {
       {/* User info */}
       <div className={`p-4 border-b border-purple-700/50 ${isCollapsed ? 'px-3' : ''}`}>
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
-          <div className="w-10 h-10 bg-purple-500/30 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-            {user.name
-              .split(' ')
-              .map((n) => n[0])
-              .join('')
-              .toUpperCase()}
-          </div>
+          {user.avatar ? (
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-purple-500/30 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+              {user.name
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .toUpperCase()}
+            </div>
+          )}
           {!isCollapsed && (
             <div className="overflow-hidden">
               <p className="font-semibold text-sm truncate">{user.name}</p>

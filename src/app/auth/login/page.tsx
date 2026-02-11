@@ -1,6 +1,5 @@
 'use client';
 
-import LoginIllustration from '@/components/illustrations/LoginIllustration';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +7,7 @@ import { faArrowRight, faEnvelope, faLock } from '@fortawesome/free-solid-svg-ic
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,8 +16,22 @@ export default function LoginPage() {
     email: '',
     password: '',
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load saved credentials on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    const savedPassword = localStorage.getItem('rememberedPassword');
+    if (savedEmail && savedPassword) {
+      setFormData({
+        email: savedEmail,
+        password: savedPassword,
+      });
+      setRememberMe(true);
+    }
+  }, []);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -51,9 +64,28 @@ export default function LoginPage() {
         email: formData.email,
         password: formData.password,
       });
+      
+      // Handle remember me
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', formData.email);
+        localStorage.setItem('rememberedPassword', formData.password);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+        localStorage.removeItem('rememberedPassword');
+      }
+      
       router.push('/dashboard');
     } catch (error: any) {
-      setErrors({ submit: error.message || 'Invalid email or password' });
+      const errorMessage = error.message || 'Invalid email or password';
+      
+      // Check if this is a verification error
+      if (errorMessage.includes('verify your email') || errorMessage.includes('needsVerification')) {
+        // Redirect to verification page
+        router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
+        return;
+      }
+      
+      setErrors({ submit: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -76,41 +108,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Illustration */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 to-purple-800 items-center justify-center p-12 relative overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute top-40 right-20 w-72 h-72 bg-purple-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-1/3 w-72 h-72 bg-purple-700 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-        
-        <div className="relative z-10 text-white max-w-md">
-          <div className="mb-8">
-            <LoginIllustration />
-          </div>
-          <h2 className="text-4xl font-bold mb-4">Performance Excellence</h2>
-          <p className="text-white text-lg">
-            Track, evaluate, and enhance employee performance with our comprehensive management system.
-          </p>
-          <div className="mt-8 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-400 flex items-center justify-center">
-                <FontAwesomeIcon icon={faArrowRight} className="text-white" />
-              </div>
-              <span className="text-white">Real-time Performance Tracking</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center">
-                <FontAwesomeIcon icon={faArrowRight} className="text-white" />
-              </div>
-              <span className="text-white">Comprehensive Appraisals</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
-                <FontAwesomeIcon icon={faArrowRight} className="text-white" />
-              </div>
-              <span className="text-white">Data-Driven Insights</span>
-            </div>
-          </div>
-        </div>
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden">
+        <img src="/auth/login.png" alt="Login" className="w-full max-w-2xl h-auto object-contain" />
       </div>
 
       {/* Right side - Login Form */}
@@ -158,7 +157,9 @@ export default function LoginPage() {
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center cursor-pointer group">
                 <input 
-                  type="checkbox" 
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)} 
                   className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500 cursor-pointer"
                 />
                 <span className="ml-2 text-gray-700 group-hover:text-gray-900">Remember me</span>

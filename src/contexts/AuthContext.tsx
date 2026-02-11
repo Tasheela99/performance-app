@@ -5,8 +5,10 @@ import {
     ForgotPasswordData,
     LoginCredentials,
     RegisterData,
+    ResendOTPData,
     ResetPasswordData,
-    User
+    User,
+    VerifyEmailData
 } from '@/types/auth.types';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
@@ -67,7 +69,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     }
   };
 
-  const register = async (data: RegisterData) => {
+  const register = async (data: RegisterData): Promise<{ needsVerification: boolean; email: string }> => {
     try {
       setIsLoading(true);
       
@@ -84,12 +86,69 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
         throw new Error(error.error || 'Registration failed');
       }
 
-      await response.json();
+      const result = await response.json();
       
-      // After registration, automatically log in
-      await login({ email: data.email, password: data.password });
+      // Return verification requirement instead of auto-login
+      return {
+        needsVerification: result.needsVerification || false,
+        email: result.email
+      };
     } catch (error) {
       console.error('Registration error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyEmail = async (data: VerifyEmailData) => {
+    try {
+      setIsLoading(true);
+      
+      const response = await fetch(`${API_BASE_URL}/api/auth/verify-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Email verification failed');
+      }
+
+      const result = await response.json();
+      console.log('Email verified successfully:', result.message);
+    } catch (error) {
+      console.error('Email verification error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendVerificationOTP = async (data: ResendOTPData) => {
+    try {
+      setIsLoading(true);
+      
+      const response = await fetch(`${API_BASE_URL}/api/auth/resend-verification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to resend verification code');
+      }
+
+      const result = await response.json();
+      console.log('Verification code resent:', result.message);
+    } catch (error) {
+      console.error('Resend verification error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -100,6 +159,14 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+  };
+
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
   };
 
   const forgotPassword = async (data: ForgotPasswordData) => {
@@ -163,7 +230,10 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       isLoading,
       login,
       register,
+      verifyEmail,
+      resendVerificationOTP,
       logout,
+      updateUser,
       forgotPassword,
       resetPassword,
     }),

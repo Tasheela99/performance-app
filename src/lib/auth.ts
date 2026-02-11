@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
+import { NextRequest } from 'next/server';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '7d';
@@ -35,6 +36,31 @@ export function verifyToken(token: string): JWTPayload | null {
   } catch (error) {
     console.error('JWT verification error:', error);
     return null;
+  }
+}
+
+// Verify token from NextRequest
+export async function verifyTokenFromRequest(
+  request: NextRequest
+): Promise<{ userId: string; error?: string } | { userId?: never; error: string }> {
+  try {
+    const authHeader = request.headers.get('authorization');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return { error: 'No authorization token provided' };
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    const payload = verifyToken(token);
+
+    if (!payload) {
+      return { error: 'Invalid or expired token' };
+    }
+
+    return { userId: payload.userId };
+  } catch (error) {
+    console.error('Token verification error:', error);
+    return { error: 'Authentication failed' };
   }
 }
 

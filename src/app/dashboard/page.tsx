@@ -1,7 +1,7 @@
 'use client';
 
 import { AdminManagerCharts, EmployeeCharts } from '@/components/dashboard/DashboardCharts';
-import { PerformanceInsights } from '@/components/dashboard/PerformanceInsights';
+// import { PerformanceInsights } from '@/components/dashboard/PerformanceInsights';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useAppraisal } from '@/contexts/AppraisalContext';
@@ -113,9 +113,9 @@ function AdminManagerDashboard() {
       </div>
 
       {/* Performance Insights */}
-      <div className="mb-8">
+      {/* <div className="mb-8">
         <PerformanceInsights />
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>

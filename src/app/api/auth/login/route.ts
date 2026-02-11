@@ -31,8 +31,10 @@ export async function POST(request: NextRequest) {
         email: true,
         passwordHash: true,
         role: true,
+        avatar: true,
         department: true,
         position: true,
+        isVerified: true,
       },
     });
 
@@ -40,6 +42,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
+      );
+    }
+
+    // Check if user is verified
+    if (!user.isVerified) {
+      return NextResponse.json(
+        { 
+          error: 'Please verify your email address before logging in',
+          needsVerification: true,
+          email: user.email
+        },
+        { status: 403 }
       );
     }
 
@@ -68,8 +82,10 @@ export async function POST(request: NextRequest) {
           name: user.name,
           email: user.email,
           role: user.role,
+          avatar: user.avatar,
           department: user.department,
           position: user.position,
+          isVerified: user.isVerified,
         },
         token,
       },

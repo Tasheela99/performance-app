@@ -284,8 +284,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
               ? { ...s, responses: submission.responses, overallComment: submission.overallComment }
               : s
           ));
-          
-          return { ...existingSubmission, ...submission };
         } else {
           // This shouldn't happen as submissions are created when templates are published
           console.warn('Submission not found for template:', submission.templateId);
