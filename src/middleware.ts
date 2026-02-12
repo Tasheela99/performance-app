@@ -4,6 +4,9 @@ import type { NextRequest } from 'next/server';
 /**
  * Global middleware for handling CORS on API routes
  * This ensures all API endpoints have proper CORS headers for production deployment
+ * 
+ * Security Note: Using wildcard '*' for Access-Control-Allow-Origin allows any origin.
+ * For production environments, consider restricting to specific domains via environment variables.
  */
 export function middleware(request: NextRequest) {
   // Handle preflight OPTIONS request
