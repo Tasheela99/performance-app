@@ -4,6 +4,21 @@ import { createOTPExpiry, generateOTP, sendVerificationEmail } from '@/lib/email
 import { Role } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
+// CORS headers for all responses
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Handle OPTIONS preflight request
+export async function OPTIONS(request: NextRequest) {
+  return NextResponse.json({}, {
+    status: 200,
+    headers: corsHeaders,
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -13,14 +28,14 @@ export async function POST(request: NextRequest) {
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: 'Name, email, and password are required' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
     if (!isValidEmail(email)) {
       return NextResponse.json(
         { error: 'Invalid email format' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -28,7 +43,7 @@ export async function POST(request: NextRequest) {
     if (!passwordCheck.valid) {
       return NextResponse.json(
         { error: passwordCheck.message },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -37,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (!['admin', 'manager', 'employee'].includes(userRole)) {
       return NextResponse.json(
         { error: 'Invalid role. Must be admin, manager, or employee' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -56,7 +71,7 @@ export async function POST(request: NextRequest) {
       if (existingUser.isVerified) {
         return NextResponse.json(
           { error: 'User with this email already exists' },
-          { status: 409 }
+          { status: 409, headers: corsHeaders }
         );
       } else {
         // User exists but not verified, generate new OTP
@@ -85,7 +100,7 @@ export async function POST(request: NextRequest) {
             needsVerification: true,
             email: email.toLowerCase(),
           },
-          { status: 200 }
+          { status: 200, headers: corsHeaders }
         );
       }
     }
@@ -147,13 +162,13 @@ export async function POST(request: NextRequest) {
         needsVerification: true,
         email: user.email,
       },
-      { status: 201 }
+      { status: 201, headers: corsHeaders }
     );
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }

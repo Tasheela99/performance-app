@@ -166,7 +166,11 @@ export async function sendPasswordResetEmail(
   resetToken: string,
   userName: string
 ): Promise<boolean> {
-  const resetUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`;
+  // Use NEXT_PUBLIC_API_URL for production, or construct URL from request origin
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}` 
+    : 'http://localhost:3000';
+  const resetUrl = `${baseUrl}/auth/reset-password?token=${resetToken}`;
 
   const html = `
     <!DOCTYPE html>

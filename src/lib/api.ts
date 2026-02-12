@@ -1,9 +1,9 @@
 /**
  * API configuration and utilities for backend communication
- * Update the API_URL when backend is ready
+ * Uses relative URLs for Next.js API routes (works in both dev and production)
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 /**
  * Generic API error class

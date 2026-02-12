@@ -14,6 +14,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Use relative URLs for Next.js API routes (works in both dev and production)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export function AuthProvider({ children }: Readonly<{ children: React.ReactNode }>) {
