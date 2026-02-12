@@ -3,7 +3,8 @@
  * Uses relative URLs for Next.js API routes (works in both dev and production)
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+// Always use relative URLs for Next.js API routes to work in all environments
+const API_URL = '/api';
 
 /**
  * Generic API error class
