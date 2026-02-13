@@ -6,14 +6,14 @@ import { useAppraisal } from '@/contexts/AppraisalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { GoalResponse } from '@/types/appraisal.types';
 import {
-  faArrowLeft,
-  faCalendar,
-  faCheckCircle,
-  faClock,
-  faFloppyDisk,
-  faPaperPlane,
-  faStar,
-  faUser,
+    faArrowLeft,
+    faCalendar,
+    faCheckCircle,
+    faClock,
+    faFloppyDisk,
+    faPaperPlane,
+    faStar,
+    faUser,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useParams, useRouter } from 'next/navigation';
