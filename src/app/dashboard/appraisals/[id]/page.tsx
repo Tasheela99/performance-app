@@ -5,24 +5,196 @@ import Card from '@/components/ui/Card';
 import { useAppraisal } from '@/contexts/AppraisalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-    faArrowLeft,
-    faCheckCircle,
-    faClock,
-    faFileAlt,
-    faUsers,
+  faArrowLeft,
+  faCheckCircle,
+  faClock,
+  faFileAlt,
+  faTimes,
+  faUserPlus,
+  faUsers,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useParams, useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+
+// ─── Assign Employees Modal ──────────────────────────────────────────
+function AssignEmployeesModal({
+  template,
+  onClose,
+  onAssign,
+}: {
+  template: any;
+  onClose: () => void;
+  onAssign: (employeeIds: string[]) => void;
+}) {
+  const { employees, isLoadingEmployees, loadEmployees } = useAppraisal();
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>(template.assignedTo || []);
+
+  React.useEffect(() => {
+    loadEmployees();
+  }, [loadEmployees]);
+
+  const toggleEmployee = (employeeId: string) => {
+    setSelectedEmployees(prev =>
+      prev.includes(employeeId)
+        ? prev.filter(id => id !== employeeId)
+        : [...prev, employeeId]
+    );
+  };
+
+  const handleAssignAll = () => {
+    if (selectedEmployees.length === employees.length) {
+      setSelectedEmployees([]);
+    } else {
+      setSelectedEmployees(employees.map(emp => emp.id));
+    }
+  };
+
+  const handleSubmit = () => {
+    onAssign(selectedEmployees);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Assign Employees</h2>
+            <p className="text-sm text-gray-500 mt-1">{template.title}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition"
+          >
+            <FontAwesomeIcon icon={faTimes} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto flex-1">
+          {isLoadingEmployees ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Loading employees...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Assign All Button */}
+              <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Select All Employees</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {employees.length} employee{employees.length !== 1 ? 's' : ''} available
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAssignAll}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    selectedEmployees.length === employees.length
+                      ? 'bg-purple-600 text-white hover:bg-purple-700'
+                      : 'bg-white text-purple-600 border border-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  {selectedEmployees.length === employees.length ? 'Unselect All' : 'Select All'}
+                </button>
+              </div>
+
+              {/* Employee List */}
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-3">
+                  Selected: {selectedEmployees.length} / {employees.length}
+                </p>
+                <div className="space-y-2">
+                  {employees.map(employee => {
+                    const isSelected = selectedEmployees.includes(employee.id);
+                    return (
+                      <button
+                        key={employee.id}
+                        type="button"
+                        onClick={() => toggleEmployee(employee.id)}
+                        className={`w-full p-4 rounded-lg border-2 transition text-left ${
+                          isSelected
+                            ? 'border-purple-500 bg-purple-50'
+                            : 'border-gray-200 bg-white hover:border-purple-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
+                                isSelected
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-gray-100 text-gray-600'
+                              }`}
+                            >
+                              {employee.name
+                                .split(' ')
+                                .map(n => n[0])
+                                .join('')}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900 text-sm">
+                                {employee.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {employee.department} • {employee.position}
+                              </p>
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <FontAwesomeIcon
+                              icon={faCheckCircle}
+                              className="text-purple-600 text-xl"
+                            />
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 p-6 border-t sticky bottom-0 bg-white">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={selectedEmployees.length === 0}
+          >
+            Assign {selectedEmployees.length} Employee{selectedEmployees.length !== 1 ? 's' : ''}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AppraisalDetailPage() {
   const { user } = useAuth();
-  const { templates, getSubmissionsForTemplate, getReviewForSubmission } = useAppraisal();
+  const { templates, getSubmissionsForTemplate, getReviewForSubmission, assignEmployeesToTemplate } = useAppraisal();
   const router = useRouter();
   const params = useParams();
   const templateId = params.id as string;
+  const [showAssignModal, setShowAssignModal] = useState(false);
 
   const template = templates.find((t) => t.id === templateId);
   const submissions = getSubmissionsForTemplate(templateId);
+
+  const handleAssignEmployees = async (employeeIds: string[]) => {
+    try {
+      await assignEmployeesToTemplate(templateId, employeeIds);
+      setShowAssignModal(false);
+    } catch (error) {
+      console.error('Failed to assign employees:', error);
+      alert('Failed to assign employees. Please try again.');
+    }
+  };
 
   if (!user || !template) {
     return (
@@ -64,8 +236,23 @@ export default function AppraisalDetailPage() {
             <span>📅 Period: {template.period}</span>
             <span>⏰ Deadline: {new Date(template.deadline).toLocaleDateString()}</span>
             <span>👤 Created by: {template.createdByName}</span>
+            <span>👥 Assigned: {template.assignedTo.length} employee{template.assignedTo.length !== 1 ? 's' : ''}</span>
           </div>
         </div>
+
+        {/* Action Buttons */}
+        {(user?.role === 'admin' || user?.role === 'manager') && (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowAssignModal(true)}
+              className="!py-2 !px-4 !text-sm"
+            >
+              <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
+              Assign Employees
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Goals */}
@@ -178,6 +365,15 @@ export default function AppraisalDetailPage() {
                         </Button>
                       )}
                     </div>
+
+      {/* Assign Employees Modal */}
+      {showAssignModal && (
+        <AssignEmployeesModal
+          template={template}
+          onClose={() => setShowAssignModal(false)}
+          onAssign={handleAssignEmployees}
+        />
+      )}
                   </div>
 
                   {/* Quick peek at responses */}

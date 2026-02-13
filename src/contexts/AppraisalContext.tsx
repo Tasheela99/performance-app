@@ -1,12 +1,12 @@
 'use client';
 
 import {
-    AppraisalContextType,
-    AppraisalReview,
-    AppraisalSubmission,
-    AppraisalTemplate,
-    AssignableEmployee,
-    OfficerPerformanceTracking,
+  AppraisalContextType,
+  AppraisalReview,
+  AppraisalSubmission,
+  AppraisalTemplate,
+  AssignableEmployee,
+  OfficerPerformanceTracking,
 } from '@/types/appraisal.types';
 import { User } from '@/types/auth.types';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -257,7 +257,28 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     },
     [],
   );
+  const assignEmployeesToTemplate = useCallback(
+    async (templateId: string, employeeIds: string[]) => {
+      try {
+        await apiCall(`/templates/${templateId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ assignedTo: employeeIds }),
+        });
 
+        // Update template in state
+        setTemplates(prev => prev.map(t => 
+          t.id === templateId ? { ...t, assignedTo: employeeIds } : t
+        ));
+        
+        // Reload data to get fresh submissions
+        await loadData();
+      } catch (error) {
+        console.error('Failed to assign employees:', error);
+        throw error;
+      }
+    },
+    [loadData],
+  );
   // ── Submission operations (employee) ─────────────────────────────
   const saveSubmission = useCallback(
     async (submission: Omit<AppraisalSubmission, 'id'>) => {
@@ -440,6 +461,7 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       isLoadingPerformance,      lastRefreshTime,
       refreshData,      createTemplate,
       updateTemplate,
+      assignEmployeesToTemplate,
       publishTemplate,
       deleteTemplate,
       saveSubmission,
@@ -466,6 +488,7 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       refreshData,
       createTemplate,
       updateTemplate,
+      assignEmployeesToTemplate,
       publishTemplate,
       deleteTemplate,
       saveSubmission,

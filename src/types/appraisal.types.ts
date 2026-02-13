@@ -129,6 +129,7 @@ export interface AppraisalContextType {
   // Template operations (admin/manager)
   createTemplate: (template: Omit<AppraisalTemplate, 'id' | 'createdAt'>) => Promise<void>;
   updateTemplate: (id: string, updates: Partial<AppraisalTemplate>) => Promise<void>;
+  assignEmployeesToTemplate: (templateId: string, employeeIds: string[]) => Promise<void>;
   publishTemplate: (id: string) => Promise<void>;
   deleteTemplate: (id: string) => Promise<void>;
   // Submission operations (employee)
