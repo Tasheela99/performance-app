@@ -16,7 +16,6 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useEffect, useState } from 'react';
 
-// Helper function for API calls
 const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
   const response = await fetch(`/api${endpoint}`, {
@@ -44,7 +43,6 @@ export const PerformanceInsights: React.FC = () => {
   const [eligibleForIncrements, setEligibleForIncrements] = useState<OfficerPerformanceTracking[]>([]);
   const [eligibleForAwards, setEligibleForAwards] = useState<OfficerPerformanceTracking[]>([]);
 
-  // Calculate performance distribution
   const performanceDistribution = React.useMemo(() => {
     const distribution = Object.keys(PERFORMANCE_CLASSIFICATIONS).reduce((acc, key) => {
       acc[key] = 0;
@@ -60,7 +58,6 @@ export const PerformanceInsights: React.FC = () => {
     return distribution;
   }, [reviews]);
 
-  // Load eligible officers
   const loadEligibleOfficers = useCallback(async () => {
     try {
       const [incrementsData, awardsData] = await Promise.all([
@@ -124,14 +121,12 @@ export const PerformanceInsights: React.FC = () => {
     );
   }
 
-  // Only show to admin and manager
   if (user?.role !== 'admin' && user?.role !== 'manager') {
     return null;
   }
 
   return (
     <div className="space-y-6">
-      {/* Performance Distribution */}
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -168,10 +163,8 @@ export const PerformanceInsights: React.FC = () => {
         </div>
       </Card>
 
-      {/* Awards and Recognition */}
       {user?.role === 'admin' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Eligible for Increments */}
           <Card>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -219,7 +212,6 @@ export const PerformanceInsights: React.FC = () => {
             )}
           </Card>
 
-          {/* Eligible for Presidential Award */}
           <Card>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -256,7 +248,6 @@ export const PerformanceInsights: React.FC = () => {
         </div>
       )}
 
-      {/* Migration Tool - Admin Only */}
       {user?.role === 'admin' && (
         <Card>
           <div className="flex items-center justify-between mb-4">

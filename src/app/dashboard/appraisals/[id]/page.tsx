@@ -17,7 +17,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
 
-// ─── Assign Employees Modal ──────────────────────────────────────────
 function AssignEmployeesModal({
   template,
   onClose,
@@ -59,7 +58,6 @@ function AssignEmployeesModal({
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
           <div>
             <h2 className="text-lg font-bold text-gray-900">
@@ -75,7 +73,6 @@ function AssignEmployeesModal({
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-6 overflow-y-auto flex-1">
           {isLoadingEmployees ? (
             <div className="text-center py-8">
@@ -83,7 +80,6 @@ function AssignEmployeesModal({
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Assign All Button */}
               <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border border-purple-200">
                 <div>
                   <p className="text-sm font-medium text-gray-900">
@@ -109,7 +105,6 @@ function AssignEmployeesModal({
                 </button>
               </div>
 
-              {/* Employee List */}
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-3">
                   Selected: {selectedEmployees.length} / {employees.length}
@@ -167,7 +162,6 @@ function AssignEmployeesModal({
           )}
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-6 border-t sticky bottom-0 bg-white">
           <Button variant="outline" onClick={onClose}>
             Cancel
@@ -234,7 +228,6 @@ export default function AppraisalDetailPage() {
 
   return (
     <div className="p-6 lg:p-8">
-      {/* Back & header */}
       <button
         onClick={() => router.push("/dashboard/appraisals")}
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6 transition"
@@ -270,7 +263,6 @@ export default function AppraisalDetailPage() {
           </div>
         </div>
 
-        {/* Action Buttons */}
         {(user?.role === "admin" || user?.role === "manager") && (
           <div className="flex flex-wrap gap-2">
             <Button
@@ -285,7 +277,6 @@ export default function AppraisalDetailPage() {
         )}
       </div>
 
-      {/* Goals */}
       <div className="mb-8">
         <h2 className="text-lg font-bold text-gray-900 mb-4">Goals / KPIs</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -317,7 +308,6 @@ export default function AppraisalDetailPage() {
         </div>
       </div>
 
-      {/* Submissions */}
       <div>
         <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <FontAwesomeIcon icon={faUsers} className="text-purple-600" />
@@ -353,7 +343,6 @@ export default function AppraisalDetailPage() {
                 },
               }[sub.status];
 
-              // Fallback for unknown status
               const safeBadge = statusBadge || {
                 color: "bg-gray-100 text-gray-600",
                 icon: faClock,
@@ -431,7 +420,6 @@ export default function AppraisalDetailPage() {
                     </div>
                   </div>
 
-                  {/* Quick peek at responses */}
                   {sub.status !== "pending" && (
                     <div className="mt-4 pt-4 border-t">
                       <p className="text-xs font-medium text-gray-500 mb-2">
@@ -449,7 +437,6 @@ export default function AppraisalDetailPage() {
         )}
       </div>
 
-      {/* Assign Employees Modal */}
       {showAssignModal && (
         <AssignEmployeesModal
           template={template}

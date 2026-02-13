@@ -20,7 +20,6 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load saved credentials on mount
   useEffect(() => {
     const savedEmail = localStorage.getItem('rememberedEmail');
     const savedPassword = localStorage.getItem('rememberedPassword');
@@ -58,14 +57,13 @@ export default function LoginPage() {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    setErrors({}); // Clear previous errors
+    setErrors({});
     try {
       await login({
         email: formData.email,
         password: formData.password,
       });
       
-      // Handle remember me
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', formData.email);
         localStorage.setItem('rememberedPassword', formData.password);
@@ -78,9 +76,7 @@ export default function LoginPage() {
     } catch (error: any) {
       const errorMessage = error.message || 'Invalid email or password';
       
-      // Check if this is a verification error
       if (errorMessage.includes('verify your email') || errorMessage.includes('needsVerification')) {
-        // Redirect to verification page
         router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
         return;
       }
@@ -96,7 +92,6 @@ export default function LoginPage() {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    // Clear error when user starts typing
     if (errors[e.target.name]) {
       setErrors({
         ...errors,
@@ -107,15 +102,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Illustration */}
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden">
         <img src="/auth/login.png" alt="Login" className="w-full max-w-2xl h-auto object-contain" />
       </div>
 
-      {/* Right side - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-md">
-          {/* Logo/Brand */}
           <div className="text-start mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-2xl mb-4 shadow-lg">
               <FontAwesomeIcon icon={faLock} className="text-white text-2xl" />
@@ -124,7 +116,6 @@ export default function LoginPage() {
             <p className="text-gray-600">Enter your credentials to access your account</p>
           </div>
 
-          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <Input
               type="email"
@@ -182,7 +173,6 @@ export default function LoginPage() {
               Sign In
             </Button>
           </form>
-          {/* Divider */}
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
@@ -192,7 +182,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Sign up link */}
           <div className="text-center">
             <Link 
               href="/auth/register" 
@@ -205,7 +194,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Add these animations to your globals.css */}
       <style jsx>{`
         @keyframes blob {
           0%, 100% { transform: translate(0, 0) scale(1); }

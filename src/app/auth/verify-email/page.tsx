@@ -72,12 +72,10 @@ function VerifyEmailForm() {
 
   return (
     <div className="min-h-screen flex overflow-hidden">
-      {/* Left side - Illustration */}
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden min-h-screen">
         <img src="/auth/verify.png" alt="Verify Email" className="w-full max-w-2xl h-auto object-contain" />
       </div>
 
-      {/* Right side - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
         <div>

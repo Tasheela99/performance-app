@@ -53,7 +53,6 @@ export default function ReviewSubmissionPage() {
     const taskGoals = template.goals.filter(g => g.section === PERFORMANCE_SECTIONS.TASKS);
     const competencyGoals = template.goals.filter(g => g.section === PERFORMANCE_SECTIONS.COMPETENCIES);
 
-    // Calculate weighted average for tasks section
     let taskWeightedSum = 0;
     let totalTaskWeightage = 0;
     taskGoals.forEach((goal) => {
@@ -65,7 +64,6 @@ export default function ReviewSubmissionPage() {
     });
     const calcTaskScore = totalTaskWeightage > 0 ? taskWeightedSum / totalTaskWeightage : 0;
 
-    // Calculate weighted average for competencies section
     let compWeightedSum = 0;
     let totalCompWeightage = 0;
     competencyGoals.forEach((goal) => {
@@ -77,7 +75,6 @@ export default function ReviewSubmissionPage() {
     });
     const calcCompScore = totalCompWeightage > 0 ? compWeightedSum / totalCompWeightage : 0;
 
-    // Apply section weightages: Tasks = 80%, Competencies = 20%
     const calcOverall = Math.round(
       (calcTaskScore * SECTION_WEIGHTAGES.tasks) / 100 +
       (calcCompScore * SECTION_WEIGHTAGES.competencies) / 100
@@ -161,7 +158,6 @@ export default function ReviewSubmissionPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
-      {/* Back */}
       <button
         onClick={() => router.push('/dashboard/reviews')}
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6 transition"
@@ -169,7 +165,6 @@ export default function ReviewSubmissionPage() {
         <FontAwesomeIcon icon={faArrowLeft} /> Back to Reviews
       </button>
 
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-1">
@@ -193,7 +188,6 @@ export default function ReviewSubmissionPage() {
         </div>
       </div>
 
-      {/* Score breakdown display */}
       <Card className="!p-5 mb-6 bg-gradient-to-r from-purple-50 to-purple-100/50 border-2 border-purple-200">
         <div className="flex items-center gap-3 mb-4">
           <FontAwesomeIcon icon={faStar} className="text-purple-600 text-xl" />
@@ -204,7 +198,6 @@ export default function ReviewSubmissionPage() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          {/* Tasks Section Score */}
           <div className="bg-white/80 rounded-xl p-3 text-center border border-purple-100">
             <div className="flex items-center justify-center gap-1 mb-1">
               <FontAwesomeIcon icon={faClipboardList} className="text-blue-500 text-xs" />
@@ -213,7 +206,6 @@ export default function ReviewSubmissionPage() {
             <p className={`text-2xl font-bold ${getScoreColor(taskScore)}`}>{taskScore}%</p>
           </div>
 
-          {/* Competencies Section Score */}
           <div className="bg-white/80 rounded-xl p-3 text-center border border-purple-100">
             <div className="flex items-center justify-center gap-1 mb-1">
               <FontAwesomeIcon icon={faCogs} className="text-green-500 text-xs" />
@@ -222,7 +214,6 @@ export default function ReviewSubmissionPage() {
             <p className={`text-2xl font-bold ${getScoreColor(competencyScore)}`}>{competencyScore}%</p>
           </div>
 
-          {/* Overall Score */}
           <div className="bg-white/80 rounded-xl p-3 text-center border border-purple-200">
             <p className="text-xs font-medium text-gray-600 mb-1">Overall</p>
             <p className={`text-2xl font-bold ${getScoreColor(overallScore)}`}>{overallScore}%</p>
@@ -233,9 +224,7 @@ export default function ReviewSubmissionPage() {
         </div>
       </Card>
 
-      {/* Goal reviews - grouped by section */}
       <div className="space-y-5 mb-8">
-        {/* Tasks Section */}
         {template.goals.some(g => g.section === PERFORMANCE_SECTIONS.TASKS) && (
           <div className="flex items-center gap-2 pt-2">
             <FontAwesomeIcon icon={faClipboardList} className="text-blue-500" />
@@ -264,7 +253,6 @@ export default function ReviewSubmissionPage() {
           );
         })}
 
-        {/* Competencies Section */}
         {template.goals.some(g => g.section === PERFORMANCE_SECTIONS.COMPETENCIES) && (
           <div className="flex items-center gap-2 pt-4">
             <FontAwesomeIcon icon={faCogs} className="text-green-500" />
@@ -294,7 +282,6 @@ export default function ReviewSubmissionPage() {
         })}
       </div>
 
-      {/* Overall comment */}
       <Card className="!p-5 mb-6">
         <label className="block text-sm font-semibold text-gray-700 mb-2">
           Overall Review Comment
@@ -314,7 +301,6 @@ export default function ReviewSubmissionPage() {
         )}
       </Card>
 
-      {/* Submit */}
       {!isReadOnly && (
         <div className="flex items-center justify-end gap-3">
           <Button variant="outline" onClick={() => router.push('/dashboard/reviews')}>
@@ -334,7 +320,6 @@ export default function ReviewSubmissionPage() {
   );
 }
 
-// ─── Goal Review Card Component ─────────────────────────────────────────
 function GoalReviewCard({
   goal,
   index,
@@ -358,7 +343,6 @@ function GoalReviewCard({
 }) {
   return (
     <Card className="!p-0 overflow-hidden">
-      {/* Goal header */}
       <div className="bg-gradient-to-r from-purple-50 to-purple-100/50 px-5 py-4 border-b">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -392,7 +376,6 @@ function GoalReviewCard({
       </div>
 
       <div className="p-5 space-y-4">
-        {/* Employee's response */}
         <div>
           <label className="text-xs font-semibold text-gray-500 mb-1 block">Employee&apos;s Self-Assessment</label>
           <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg text-sm text-gray-700">
@@ -400,7 +383,6 @@ function GoalReviewCard({
           </div>
         </div>
 
-        {/* Scoring */}
         <div>
           <label className="text-xs font-semibold text-gray-500 mb-2 block">
             Score (0-100)
@@ -440,7 +422,6 @@ function GoalReviewCard({
           )}
         </div>
 
-        {/* Review comment */}
         <div>
           <label className="text-xs font-semibold text-gray-500 mb-1 block">Your Feedback</label>
           {isReadOnly ? (
@@ -462,7 +443,6 @@ function GoalReviewCard({
   );
 }
 
-// ─── Classification Badge Helper ────────────────────────────────────────
 const CLASSIFICATION_COLOR_MAP: Record<string, string> = {
   purple: 'bg-purple-100 text-purple-800',
   green: 'bg-green-100 text-green-800',

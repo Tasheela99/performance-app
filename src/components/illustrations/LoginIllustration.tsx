@@ -6,22 +6,17 @@ export default function LoginIllustration() {
       xmlns="http://www.w3.org/2000/svg"
       className="w-full h-full"
     >
-      {/* Background circles */}
       <circle cx="250" cy="250" r="200" fill="url(#gradient1)" opacity="0.1" />
       <circle cx="250" cy="250" r="150" fill="url(#gradient2)" opacity="0.15" />
       
-      {/* Person sitting with laptop */}
       <ellipse cx="250" cy="420" rx="100" ry="15" fill="#E5E7EB" opacity="0.5" />
       
-      {/* Laptop */}
       <rect x="180" y="320" width="140" height="90" rx="4" fill="#1E40AF" />
       <rect x="185" y="325" width="130" height="70" fill="#3B82F6" />
       <rect x="170" y="410" width="160" height="8" rx="4" fill="#1E3A8A" />
       
-      {/* Screen glow */}
       <rect x="190" y="330" width="120" height="60" fill="url(#screenGlow)" opacity="0.8" />
       
-      {/* Lock icon floating */}
       <g transform="translate(230, 150)">
         <rect x="10" y="25" width="40" height="45" rx="5" fill="#10B981" />
         <path
@@ -35,7 +30,6 @@ export default function LoginIllustration() {
         <rect x="28" y="45" width="4" height="10" fill="white" />
       </g>
       
-      {/* Shield icon */}
       <g transform="translate(340, 180)">
         <path
           d="M0 0 L20 0 L20 30 L10 40 L0 30 Z"
@@ -45,20 +39,17 @@ export default function LoginIllustration() {
         <path d="M5 10 L9 14 L15 8" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" />
       </g>
       
-      {/* Key icon */}
       <g transform="translate(140, 200)">
         <circle cx="10" cy="10" r="10" fill="#F59E0B" opacity="0.6" />
         <rect x="15" y="8" width="25" height="4" fill="#F59E0B" opacity="0.6" />
         <rect x="35" y="5" width="3" height="10" fill="#F59E0B" opacity="0.6" />
       </g>
       
-      {/* Particles */}
       <circle cx="100" cy="100" r="3" fill="#60A5FA" opacity="0.4" />
       <circle cx="400" cy="120" r="4" fill="#34D399" opacity="0.4" />
       <circle cx="380" cy="300" r="3" fill="#A78BFA" opacity="0.4" />
       <circle cx="120" cy="350" r="4" fill="#FBBF24" opacity="0.4" />
       
-      {/* Gradients */}
       <defs>
         <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#3B82F6" />

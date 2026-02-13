@@ -19,10 +19,8 @@ export async function GET(request: NextRequest) {
     let whereClause: any = {};
 
     if (userRole === 'admin' || userRole === 'manager') {
-      // Admin and Manager can see all reviews
       if (submissionId) whereClause.submissionId = submissionId;
     } else {
-      // Employee can see reviews of their submissions
       whereClause = {
         submission: {
           employeeId: userId
@@ -129,7 +127,6 @@ export async function POST(request: NextRequest) {
 
   const user = authResult.user!;
 
-  // Only admin and manager can create reviews
   if (user.role !== 'admin' && user.role !== 'manager') {
     return NextResponse.json(
       { error: 'Only administrators and managers can create reviews' },
@@ -141,7 +138,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { submissionId, goalReviews, overallComment } = body;
 
-    // Validation
     if (!submissionId || !goalReviews || goalReviews.length === 0) {
       return NextResponse.json(
         { error: 'Submission ID and goal reviews are required' },
@@ -149,7 +145,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if submission exists and user has permission to review it
     const submission = await prisma.appraisalSubmission.findFirst({
       where: (user.role === 'admin' || user.role === 'manager')
         ? { id: submissionId }
@@ -176,7 +171,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if submission is in reviewable state
     if (submission.status !== 'submitted') {
       return NextResponse.json(
         { error: 'Can only review submitted appraisals' },
@@ -184,7 +178,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if already reviewed
     if (submission.review) {
       return NextResponse.json(
         { error: 'This submission has already been reviewed' },
@@ -192,7 +185,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate all goals have reviews
     const requiredGoalIds = submission.template.goals.map(goal => goal.id);
     const reviewGoalIds = goalReviews.map((gr: any) => gr.goalId);
     const missingGoals = requiredGoalIds.filter(goalId => !reviewGoalIds.includes(goalId));
@@ -204,7 +196,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate goal review scores
     const invalidScores = goalReviews.filter((gr: any) => 
       gr.score < 0 || gr.score > 100
     );
@@ -216,19 +207,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create review and goal reviews in transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Calculate section scores and overall score
       const taskGoals = submission.template.goals.filter(goal => goal.section === PERFORMANCE_SECTIONS.TASKS);
       const competencyGoals = submission.template.goals.filter(goal => goal.section === PERFORMANCE_SECTIONS.COMPETENCIES);
       
-      // Calculate weighted scores for each section
       let taskScore = 0;
       let competencyScore = 0;
       let totalTaskWeightage = 0;
       let totalCompetencyWeightage = 0;
 
-      // Calculate task section score
       taskGoals.forEach(goal => {
         const goalReview = goalReviews.find((gr: any) => gr.goalId === goal.id);
         if (goalReview) {
@@ -237,7 +224,6 @@ export async function POST(request: NextRequest) {
         }
       });
       
-      // Calculate competency section score
       competencyGoals.forEach(goal => {
         const goalReview = goalReviews.find((gr: any) => gr.goalId === goal.id);
         if (goalReview) {
@@ -246,20 +232,16 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      // Normalize section scores to percentages
       taskScore = totalTaskWeightage > 0 ? taskScore / totalTaskWeightage : 0;
       competencyScore = totalCompetencyWeightage > 0 ? competencyScore / totalCompetencyWeightage : 0;
 
-      // Calculate overall weighted score
       const overallScore = Math.round(
         (taskScore * SECTION_WEIGHTAGES.tasks) / 100 +
         (competencyScore * SECTION_WEIGHTAGES.competencies) / 100
       );
 
-      // Get performance classification
       const classification = getPerformanceClassification(overallScore);
 
-      // Create review
       const review = await tx.appraisalReview.create({
         data: {
           submissionId,
@@ -273,7 +255,6 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Create goal reviews
       const goalReviewPromises = goalReviews.map((gr: any) =>
         tx.goalReview.create({
           data: {
@@ -286,13 +267,11 @@ export async function POST(request: NextRequest) {
       );
       await Promise.all(goalReviewPromises);
 
-      // Update submission status to reviewed
       await tx.appraisalSubmission.update({
         where: { id: submissionId },
         data: { status: 'reviewed' }
       });
 
-      // Update officer performance tracking if applicable
       if (classification.key === 'EXCELLENT') {
         await updateOfficerPerformanceTracking(tx, submission.employeeId);
       }
@@ -300,7 +279,6 @@ export async function POST(request: NextRequest) {
       return review;
     });
 
-    // Get the created review with all data for response
     const createdReview = await prisma.appraisalReview.findUnique({
       where: { id: result.id },
       include: {
@@ -364,17 +342,14 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Helper function to update officer performance tracking
 async function updateOfficerPerformanceTracking(tx: any, officerId: string) {
   const currentYear = new Date().getFullYear().toString();
   
-  // Get or create performance tracking record
   let tracking = await tx.officerPerformanceTracking.findUnique({
     where: { officerId }
   });
 
   if (!tracking) {
-    // Create new tracking record
     tracking = await tx.officerPerformanceTracking.create({
       data: {
         officerId,
@@ -385,7 +360,6 @@ async function updateOfficerPerformanceTracking(tx: any, officerId: string) {
       }
     });
   } else {
-    // Update existing tracking
     const lastYear = tracking.lastExcellentYear ? parseInt(tracking.lastExcellentYear) : 0;
     const isConsecutive = lastYear === parseInt(currentYear) - 1 || !tracking.lastExcellentYear;
     
@@ -393,12 +367,10 @@ async function updateOfficerPerformanceTracking(tx: any, officerId: string) {
     let totalIncrements = tracking.totalIncrements;
     let eligibleForPresidentialAward = tracking.eligibleForPresidentialAward;
     
-    // Award increment for 3 consecutive excellent years
     if (consecutiveYears === 3) {
       totalIncrements += 1;
-      consecutiveYears = 0; // Reset counter after awarding increment
+      consecutiveYears = 0;
       
-      // Check for Presidential Award eligibility
       if (totalIncrements >= 3) {
         eligibleForPresidentialAward = true;
       }

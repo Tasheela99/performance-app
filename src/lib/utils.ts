@@ -1,20 +1,9 @@
-/**
- * Validation utilities for forms
- */
-
 export const validators = {
-  /**
-   * Validate email format
-   */
   isValidEmail: (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   },
 
-  /**
-   * Validate password strength
-   * Must be at least 8 characters with uppercase, lowercase, and number
-   */
   isStrongPassword: (password: string): boolean => {
     const minLength = password.length >= 8;
     const hasUpperCase = /[A-Z]/.test(password);
@@ -24,42 +13,24 @@ export const validators = {
     return minLength && hasUpperCase && hasLowerCase && hasNumber;
   },
 
-  /**
-   * Validate password meets minimum requirements
-   */
   isValidPassword: (password: string): boolean => {
     return password.length >= 6;
   },
 
-  /**
-   * Check if two passwords match
-   */
   passwordsMatch: (password: string, confirmPassword: string): boolean => {
     return password === confirmPassword;
   },
 
-  /**
-   * Validate name (at least 2 characters)
-   */
   isValidName: (name: string): boolean => {
     return name.trim().length >= 2;
   },
 
-  /**
-   * Validate required field
-   */
   isRequired: (value: string): boolean => {
     return value.trim().length > 0;
   },
 };
 
-/**
- * Format utilities
- */
 export const formatters = {
-  /**
-   * Format date to readable string
-   */
   formatDate: (date: Date | string): string => {
     const d = new Date(date);
     return d.toLocaleDateString('en-US', {
@@ -69,9 +40,6 @@ export const formatters = {
     });
   },
 
-  /**
-   * Format relative time (e.g., "2 days ago")
-   */
   formatRelativeTime: (date: Date | string): string => {
     const d = new Date(date);
     const now = new Date();
@@ -86,16 +54,10 @@ export const formatters = {
     return `${Math.floor(diffDays / 365)} years ago`;
   },
 
-  /**
-   * Capitalize first letter of each word
-   */
   capitalize: (str: string): string => {
     return str.replace(/\b\w/g, (char) => char.toUpperCase());
   },
 
-  /**
-   * Get initials from name
-   */
   getInitials: (name: string): string => {
     const words = name.split(' ');
     if (words.length >= 2) {
@@ -105,9 +67,6 @@ export const formatters = {
   },
 };
 
-/**
- * Local storage utilities with error handling
- */
 export const storage = {
   get: <T>(key: string, defaultValue: T | null = null): T | null => {
     try {
@@ -144,9 +103,6 @@ export const storage = {
   },
 };
 
-/**
- * Debounce function for search inputs
- */
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
@@ -164,16 +120,10 @@ export function debounce<T extends (...args: any[]) => any>(
   };
 }
 
-/**
- * Generate random ID
- */
 export const generateId = (): string => {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
 };
 
-/**
- * Truncate text to specified length
- */
 export const truncate = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength - 3) + '...';

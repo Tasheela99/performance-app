@@ -7,7 +7,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email } = body;
 
-    // Validation
     if (!email) {
       return NextResponse.json(
         { error: 'Email is required' },
@@ -15,7 +14,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
       select: {
@@ -40,11 +38,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate new OTP
     const otp = generateOTP();
     const otpExpiry = createOTPExpiry();
 
-    // Update user with new OTP
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -53,7 +49,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send verification email
     try {
       await sendVerificationEmail(user.email, user.name, otp);
       console.log(`🔐 Verification email resent to ${user.email} with OTP: ${otp}`);

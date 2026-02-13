@@ -8,7 +8,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email } = body;
 
-    // Validation
     if (!email) {
       return NextResponse.json(
         { error: 'Email is required' },
@@ -23,13 +22,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user using Prisma
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
       select: { id: true, name: true, email: true },
     });
 
-    // Always return success even if user doesn't exist (security best practice)
     if (!user) {
       return NextResponse.json(
         {
@@ -39,11 +36,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate reset token
     const resetToken = generateResetToken();
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
-    // Store reset token in database using Prisma
     await prisma.passwordResetToken.create({
       data: {
         userId: user.id,
@@ -52,7 +47,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send email
     await sendPasswordResetEmail(user.email, resetToken, user.name);
 
     return NextResponse.json(

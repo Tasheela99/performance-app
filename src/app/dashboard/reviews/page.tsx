@@ -25,7 +25,6 @@ export default function ReviewsPage() {
     return null;
   }
 
-  // Get all submissions that are at least "submitted"
   const reviewable = useMemo(() => {
     const submittedOrReviewed = submissions.filter((s) => {
       return s.status === 'submitted' || s.status === 'reviewed';
@@ -52,13 +51,11 @@ export default function ReviewsPage() {
 
   return (
     <div className="p-6 lg:p-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Review Submissions</h1>
         <p className="text-gray-500 text-sm mt-1">Review and score employee appraisal submissions</p>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card className="!p-4">
           <div className="flex items-center gap-3">
@@ -95,7 +92,6 @@ export default function ReviewsPage() {
         </Card>
       </div>
 
-      {/* Filter */}
       <div className="flex gap-2 mb-6">
         {(['all', 'submitted', 'reviewed'] as const).map((s) => (
           <button
@@ -112,7 +108,6 @@ export default function ReviewsPage() {
         ))}
       </div>
 
-      {/* Submissions list */}
       {reviewable.length === 0 ? (
         <Card className="text-center py-16">
           <FontAwesomeIcon icon={faFileAlt} className="text-4xl text-gray-300 mb-4" />

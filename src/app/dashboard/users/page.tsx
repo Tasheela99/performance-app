@@ -61,7 +61,6 @@ export default function UserManagementPage() {
     pageSize: 10,
   });
 
-  // Redirect if not admin
   useEffect(() => {
     if (user && user.role !== 'admin') {
       router.push('/dashboard');
@@ -223,7 +222,7 @@ export default function UserManagementPage() {
           icon={<FontAwesomeIcon icon={getRoleIcon(params.value)} />}
           sx={{ 
             minWidth: '100px',
-            opacity: params.id === user?.id ? 0.7 : 1, // Visual indicator for non-editable
+            opacity: params.id === user?.id ? 0.7 : 1,
             '& .MuiChip-label': {
               paddingLeft: '8px',
               paddingRight: '12px'
@@ -344,7 +343,6 @@ export default function UserManagementPage() {
 
   return (
     <div className="p-6 lg:p-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
           <FontAwesomeIcon icon={faUsers} className="text-purple-600" />
@@ -353,7 +351,6 @@ export default function UserManagementPage() {
         <p className="text-gray-500 text-sm mt-1">Manage users and their roles in the system</p>
       </div>
 
-      {/* Filters */}
       <Card className="mb-6">
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="flex-1 max-w-md">
@@ -387,7 +384,6 @@ export default function UserManagementPage() {
         </div>
       </Card>
 
-      {/* Users DataGrid */}
       <Card>
         <Box sx={{ height: 400, width: '100%' }}>
           <DataGrid
@@ -447,7 +443,6 @@ export default function UserManagementPage() {
         </Box>
       </Card>
 
-      {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
         <Card className="!p-4 text-center">
           <div className="text-2xl font-bold text-gray-900">{users.length}</div>

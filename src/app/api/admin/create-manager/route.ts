@@ -5,7 +5,6 @@ import { Role } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
-  // Check if user is authenticated admin
   const authResult = await requireAdmin(request);
   if (!authResult.success) {
     return authResult.error;
@@ -15,7 +14,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, email, password, department, position } = body;
 
-    // Validation
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: 'Name, email, and password are required' },
@@ -38,7 +36,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
       select: { id: true },
@@ -51,10 +48,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Create manager user
     const manager = await prisma.user.create({
       data: {
         name,
@@ -101,14 +96,12 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  // Check if user is authenticated admin
   const authResult = await requireAdmin(request);
   if (!authResult.success) {
     return authResult.error;
   }
 
   try {
-    // Get all managers for admin to view
     const managers = await prisma.user.findMany({
       where: { role: 'manager' },
       select: {

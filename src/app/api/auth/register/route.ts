@@ -4,14 +4,12 @@ import { createOTPExpiry, generateOTP, sendVerificationEmail } from '@/lib/email
 import { Role } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
-// CORS headers for all responses
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-// Handle OPTIONS preflight request
 export async function OPTIONS(request: NextRequest) {
   return NextResponse.json({}, {
     status: 200,
@@ -24,7 +22,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, email, password, role, department, position, acceptedTerms } = body;
 
-    // Validation
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: 'Name, email, and password are required' },
@@ -47,7 +44,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Set default role if not provided
     const userRole: Role = role || 'employee';
     if (!['admin', 'manager', 'employee'].includes(userRole)) {
       return NextResponse.json(
@@ -56,7 +52,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists using Prisma
     const existingUser = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
       select: { 
@@ -74,7 +69,6 @@ export async function POST(request: NextRequest) {
           { status: 409, headers: corsHeaders }
         );
       } else {
-        // User exists but not verified, generate new OTP
         const otp = generateOTP();
         const otpExpiry = createOTPExpiry();
 
@@ -86,7 +80,6 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        // Send verification email
         try {
           await sendVerificationEmail(email, existingUser.name, otp);
           console.log(`🔐 Verification email sent to ${email} with OTP: ${otp}`);
@@ -105,14 +98,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Generate OTP for email verification
     const otp = generateOTP();
     const otpExpiry = createOTPExpiry();
 
-    // Create user using Prisma (unverified)
     const user = await prisma.user.create({
       data: {
         name,
@@ -138,13 +128,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send verification email
     try {
       await sendVerificationEmail(email, name, otp);
       console.log(`🔐 Verification email sent to ${email} with OTP: ${otp}`);
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError);
-      // Don't fail registration if email fails, user can request resend
     }
 
     return NextResponse.json(
@@ -167,7 +155,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Registration error:', error);
     
-    // Return more detailed error in development
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     const errorDetails = process.env.NODE_ENV === 'development' 
       ? { error: errorMessage, stack: error instanceof Error ? error.stack : undefined }

@@ -20,7 +20,6 @@ export async function POST(
   try {
     const { id } = await params;
 
-    // Check if submission exists and user has permission
     const submission = await prisma.appraisalSubmission.findFirst({
       where: { 
         id, 
@@ -43,7 +42,6 @@ export async function POST(
       );
     }
 
-    // Check if template is published
     if (submission.template.status !== 'published') {
       return NextResponse.json(
         { error: 'Cannot submit for unpublished template' },
@@ -51,7 +49,6 @@ export async function POST(
       );
     }
 
-    // Check if submission is in submittable state
     if (submission.status === 'submitted' || submission.status === 'reviewed') {
       return NextResponse.json(
         { error: 'Submission has already been submitted' },
@@ -59,7 +56,6 @@ export async function POST(
       );
     }
 
-    // Validate all goals have responses
     const requiredGoalIds = submission.template.goals.map(goal => goal.id);
     const responseGoalIds = submission.goalResponses.map(response => response.goalId);
     const missingGoals = requiredGoalIds.filter(goalId => !responseGoalIds.includes(goalId));
@@ -71,7 +67,6 @@ export async function POST(
       );
     }
 
-    // Validate all responses have content
     const emptyResponses = submission.goalResponses.filter(response => 
       !response.response || response.response.trim().length === 0
     );
@@ -83,7 +78,6 @@ export async function POST(
       );
     }
 
-    // Check if deadline has passed
     const now = new Date();
     if (submission.template.deadline < now) {
       return NextResponse.json(
@@ -92,7 +86,6 @@ export async function POST(
       );
     }
 
-    // Submit the appraisal
     const updatedSubmission = await prisma.appraisalSubmission.update({
       where: { id },
       data: {

@@ -17,7 +17,6 @@ export async function POST(
 
   const user = authResult.user!;
 
-  // Only admin and manager can publish templates
   if (user.role !== 'admin' && user.role !== 'manager') {
     return NextResponse.json(
       { error: 'Only administrators and managers can publish templates' },
@@ -28,7 +27,6 @@ export async function POST(
   try {
     const { id } = await params;
 
-    // Check if template exists and user has permission
     const template = await prisma.appraisalTemplate.findFirst({
       where: (user.role === 'admin' || user.role === 'manager')
         ? { id }
@@ -52,7 +50,6 @@ export async function POST(
       );
     }
 
-    // Validate template is complete before publishing
     if (template.goals.length === 0) {
       return NextResponse.json(
         { error: 'Cannot publish template without goals' },
@@ -67,7 +64,6 @@ export async function POST(
       );
     }
 
-    // Check if template is already published
     if (template.status === 'published') {
       return NextResponse.json(
         { error: 'Template is already published' },
@@ -75,15 +71,12 @@ export async function POST(
       );
     }
 
-    // Publish template and create submissions for assigned employees
     const result = await prisma.$transaction(async (tx) => {
-      // Update template status
       const updatedTemplate = await tx.appraisalTemplate.update({
         where: { id },
         data: { status: 'published' }
       });
 
-      // Create submissions for all assigned employees
       const submissionPromises = template.assignments.map(assignment =>
         tx.appraisalSubmission.create({
           data: {

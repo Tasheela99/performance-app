@@ -20,15 +20,12 @@ export async function GET(
     const userId = authResult.user!.id;
     const userRole = authResult.user!.role;
 
-    // Build query based on role
     let whereClause: any = { id };
     
     if (userRole === 'employee') {
-      // Employee can only access their own submissions for PUBLISHED templates
       whereClause.employeeId = userId;
       whereClause.template = { status: 'published' };
     }
-    // Admin and Manager can access all submissions (no additional where clause)
 
     const submission = await prisma.appraisalSubmission.findFirst({
       where: whereClause,
@@ -106,7 +103,7 @@ export async function GET(
         goalId: response.goalId,
         selfComment: response.response || '',
       })),
-      overallComment: '', // Add this field to the schema if needed
+      overallComment: '',
       status: submission.status,
       submittedAt: submission.submittedAt?.toISOString(),
       createdAt: submission.createdAt.toISOString(),
@@ -151,11 +148,10 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    // Check if submission exists and user has permission
     const submission = await prisma.appraisalSubmission.findFirst({
       where: { 
         id, 
-        employeeId: user.id, // Only employees can update their own submissions
+        employeeId: user.id,
       },
       include: {
         template: {
@@ -171,7 +167,6 @@ export async function PUT(
       );
     }
 
-    // Check if template is published
     if (submission.template.status !== 'published') {
       return NextResponse.json(
         { error: 'Cannot update submission for unpublished template' },
@@ -179,7 +174,6 @@ export async function PUT(
       );
     }
 
-    // Check if submission is in editable state
     if (submission.status === 'submitted' || submission.status === 'reviewed') {
       return NextResponse.json(
         { error: 'Cannot update submitted or reviewed submission' },
@@ -189,9 +183,7 @@ export async function PUT(
 
     const { responses, overallComment } = body;
 
-    // Update submission and responses in transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Update submission status to in-progress if it was pending
       const updatedSubmission = await tx.appraisalSubmission.update({
         where: { id },
         data: {
@@ -199,7 +191,6 @@ export async function PUT(
         },
       });
 
-      // Update or create goal responses
       if (responses && responses.length > 0) {
         for (const response of responses) {
           await tx.goalResponse.upsert({

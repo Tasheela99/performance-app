@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
 
   const user = authResult.user!;
 
-  // Only admin and manager can view performance tracking
   if (user.role !== 'admin' && user.role !== 'manager') {
     return NextResponse.json(
       { error: 'Only administrators and managers can view performance tracking' },
@@ -71,7 +70,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Get officers eligible for increments or awards
 export async function POST(request: NextRequest) {
   const authResult = await requireAuth(request);
   if (!authResult.success) {
@@ -80,7 +78,6 @@ export async function POST(request: NextRequest) {
 
   const user = authResult.user!;
 
-  // Only admin can manage awards and increments
   if (user.role !== 'admin') {
     return NextResponse.json(
       { error: 'Only administrators can manage awards and increments' },
@@ -90,12 +87,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { type } = body; // 'increment' or 'presidential_award'
+    const { type } = body;
 
     let eligibleOfficers;
 
     if (type === 'increment') {
-      // Officers with 3 consecutive excellent years
       eligibleOfficers = await prisma.officerPerformanceTracking.findMany({
         where: {
           consecutiveExcellentYears: {
@@ -115,7 +111,6 @@ export async function POST(request: NextRequest) {
         }
       });
     } else if (type === 'presidential_award') {
-      // Officers eligible for Presidential Awards
       eligibleOfficers = await prisma.officerPerformanceTracking.findMany({
         where: {
           eligibleForPresidentialAward: true

@@ -2,14 +2,8 @@ import { hashPassword } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 
-/**
- * Protected endpoint to seed the database
- * Only accessible with a secret token
- * DELETE THIS FILE AFTER SEEDING IN PRODUCTION
- */
 export async function POST(request: NextRequest) {
   try {
-    // Check for secret token in headers
     const authHeader = request.headers.get('authorization');
     const SEED_SECRET = process.env.SEED_SECRET || 'change-this-secret';
     
@@ -20,7 +14,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if admin already exists
     const existingAdmin = await prisma.user.findFirst({
       where: { role: 'admin' }
     });
@@ -32,7 +25,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create admin user
     const adminPassword = await hashPassword('Admin@123');
     const admin = await prisma.user.create({
       data: {
@@ -46,7 +38,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create sample manager
     const managerPassword = await hashPassword('Manager@123');
     const manager = await prisma.user.create({
       data: {
@@ -60,7 +51,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create sample employee
     const employeePassword = await hashPassword('Employee@123');
     const employee = await prisma.user.create({
       data: {

@@ -68,10 +68,8 @@ export default function RegisterPage() {
       });
       
       if (result.needsVerification) {
-        // Redirect to email verification page
         router.push(`/auth/verify-email?email=${encodeURIComponent(result.email)}`);
       } else {
-        // Direct login (fallback for already verified users)
         router.push('/dashboard');
       }
     } catch (error: any) {
@@ -96,15 +94,12 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex overflow-hidden">
-      {/* Left side - Illustration */}
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden min-h-screen">
         <img src="/auth/register.png" alt="Register" className="w-full max-w-2xl h-auto object-contain" />
       </div>
 
-      {/* Right side - Registration Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50 min-h-screen">
         <div className="w-full max-w-lg">
-          {/* Header */}
           <div className="mb-4">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-2xl mb-4 shadow-lg">
               <FontAwesomeIcon icon={faRocket} className="text-white text-2xl" />
@@ -113,7 +108,6 @@ export default function RegisterPage() {
             <p className="text-gray-600 text-sm">Create your account and unlock powerful tools</p>
           </div>
 
-          {/* Registration Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-1 gap-3">
               <Input
@@ -222,7 +216,6 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          {/* Sign in link */}
           <div className="mt-3 text-center">
             <span className="text-gray-600 text-xs">Already have an account? </span>
             <Link 

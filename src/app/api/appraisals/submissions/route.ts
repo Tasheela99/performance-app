@@ -19,13 +19,11 @@ export async function GET(request: NextRequest) {
     let whereClause: any = {};
 
     if (userRole === 'admin' || userRole === 'manager') {
-      // Admin and Manager can see all submissions
       if (templateId) whereClause.templateId = templateId;
       if (employeeId) whereClause.employeeId = employeeId;
     } else {
-      // Employee can only see their own submissions for PUBLISHED templates
       whereClause.employeeId = userId;
-      whereClause.template = { status: 'published' }; // Only published templates
+      whereClause.template = { status: 'published' };
       if (templateId) whereClause.templateId = templateId;
     }
 
@@ -90,7 +88,7 @@ export async function GET(request: NextRequest) {
         goalId: response.goalId,
         selfComment: response.response || '',
       })),
-      overallComment: '', // TODO: Add overall comment field to database
+      overallComment: '',
       status: submission.status,
       submittedAt: submission.submittedAt?.toISOString(),
       createdAt: submission.createdAt.toISOString(),
@@ -126,7 +124,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { templateId, employeeId, employeeName, responses, overallComment, status } = body;
 
-    // Validate required fields
     if (!templateId || !employeeId || !employeeName) {
       return NextResponse.json(
         { error: 'Missing required fields: templateId, employeeId, employeeName' },
@@ -134,7 +131,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify template exists and is published
     const template = await prisma.appraisalTemplate.findUnique({
       where: { id: templateId },
       include: { goals: true }
@@ -154,7 +150,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify employee is assigned to this template (or user is admin/manager)
     if (user.role === 'employee' && employeeId !== user.id) {
       return NextResponse.json(
         { error: 'Cannot create submission for another employee' },
@@ -162,7 +157,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if submission already exists
     const existingSubmission = await prisma.appraisalSubmission.findFirst({
       where: {
         templateId,
@@ -177,9 +171,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create submission with responses
     const result = await prisma.$transaction(async (tx) => {
-      // Create submission
       const submission = await tx.appraisalSubmission.create({
         data: {
           templateId,
@@ -189,7 +181,6 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      // Create goal responses if provided
       if (responses && responses.length > 0) {
         const responsePromises = responses.map((response: any) =>
           tx.goalResponse.create({

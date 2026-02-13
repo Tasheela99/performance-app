@@ -98,7 +98,6 @@ export default function Sidebar() {
         isCollapsed ? 'w-20' : 'w-64'
       }`}
     >
-      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-purple-700/50">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
@@ -116,7 +115,6 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* User info */}
       <div className={`p-4 border-b border-purple-700/50 ${isCollapsed ? 'px-3' : ''}`}>
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
           {user.avatar ? (
@@ -147,7 +145,6 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 py-4 overflow-y-auto">
         <ul className="space-y-1 px-3">
           {filteredNav.map((item) => {
@@ -174,7 +171,6 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* Logout */}
       <div className="p-3 border-t border-purple-700/50">
         <button
           onClick={handleLogout}

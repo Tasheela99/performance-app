@@ -89,7 +89,6 @@ export const RecognitionStatus: React.FC<RecognitionStatusProps> = ({
 }) => {
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* Consecutive Excellence Tracking */}
       <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
         <div>
           <p className="text-sm font-medium text-gray-900">Consecutive Excellent Years</p>
@@ -103,7 +102,6 @@ export const RecognitionStatus: React.FC<RecognitionStatusProps> = ({
         </div>
       </div>
 
-      {/* Total Increments */}
       <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
         <div>
           <p className="text-sm font-medium text-gray-900">Performance Increments</p>
@@ -117,7 +115,6 @@ export const RecognitionStatus: React.FC<RecognitionStatusProps> = ({
         </div>
       </div>
 
-      {/* Presidential Award Status */}
       {eligibleForPresidentialAward && (
         <div className="flex items-center justify-center p-3 bg-purple-50 border border-purple-200 rounded-lg">
           <div className="text-center">

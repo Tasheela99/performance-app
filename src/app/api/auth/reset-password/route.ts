@@ -7,7 +7,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { token, password } = body;
 
-    // Validation
     if (!token || !password) {
       return NextResponse.json(
         { error: 'Token and password are required' },
@@ -23,7 +22,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find valid reset token using Prisma
     const resetToken = await prisma.passwordResetToken.findUnique({
       where: { token },
       include: {
@@ -40,7 +38,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if token is expired
     if (new Date(resetToken.expiresAt) < new Date()) {
       return NextResponse.json(
         { error: 'Reset token has expired' },
@@ -48,7 +45,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if token has been used
     if (resetToken.used) {
       return NextResponse.json(
         { error: 'Reset token has already been used' },
@@ -56,10 +52,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash new password
     const passwordHash = await hashPassword(password);
 
-    // Update password and mark token as used (in a transaction)
     await prisma.$transaction([
       prisma.user.update({
         where: { id: resetToken.userId },

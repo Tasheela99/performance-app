@@ -24,7 +24,6 @@ import {
     YAxis
 } from 'recharts';
 
-// Chart color schemes
 const CHART_COLORS = {
   primary: ['#8B5CF6', '#A78BFA', '#C4B5FD', '#DDD6FE'],
   success: ['#10B981', '#34D399', '#6EE7B7', '#A7F3D0'],
@@ -36,12 +35,11 @@ const CHART_COLORS = {
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-// ─── Admin/Manager Charts ──────────────────────────────────────────────
+
 export function AdminManagerCharts() {
   const { templates, submissions, reviews } = useAppraisal();
   const { user } = useAuth();
 
-  // Submission Status Distribution
   const submissionStatusData = useMemo(() => {
     const statusCounts = {
       pending: 0,
@@ -62,7 +60,6 @@ export function AdminManagerCharts() {
     ].filter(item => item.value > 0);
   }, [submissions]);
 
-  // Score Distribution
   const scoreDistData = useMemo(() => {
     const ranges = {
       'Excellent (80-100)': 0,
@@ -83,7 +80,6 @@ export function AdminManagerCharts() {
     ];
   }, [reviews]);
 
-  // Monthly Progress
   const monthlyData = useMemo(() => {
     const currentDate = new Date();
     const months = [];
@@ -119,7 +115,6 @@ export function AdminManagerCharts() {
 
   return (
     <>
-      {/* Submission Status Distribution */}
       <Card className="col-span-1">
         <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <FontAwesomeIcon icon={faUsers} className="text-purple-600" />
@@ -156,7 +151,6 @@ export function AdminManagerCharts() {
         </div>
       </Card>
 
-      {/* Performance Score Distribution */}
       <Card className="col-span-1">
         <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <FontAwesomeIcon icon={faArrowUp} className="text-green-600" />
@@ -184,7 +178,6 @@ export function AdminManagerCharts() {
         </div>
       </Card>
 
-      {/* Monthly Progress */}
       <Card className="col-span-1">
         <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <FontAwesomeIcon icon={faCalendarAlt} className="text-blue-600" />
@@ -221,7 +214,7 @@ export function AdminManagerCharts() {
   );
 }
 
-// ─── Employee Charts ──────────────────────────────────────────────────
+
 export function EmployeeCharts() {
   const { user } = useAuth();
   const { getTemplatesForUser, getSubmissionForEmployee, getReviewForSubmission } = useAppraisal();
@@ -232,7 +225,6 @@ export function EmployeeCharts() {
     submission: getSubmissionForEmployee(t.id, user!.id),
   }));
 
-  // Personal Performance Data
   const personalPerformance = useMemo(() => {
     return mySubmissions
       .filter(item => item.submission?.status === 'reviewed')
@@ -247,7 +239,6 @@ export function EmployeeCharts() {
       .sort((a, b) => a.period.localeCompare(b.period));
   }, [mySubmissions, getReviewForSubmission]);
 
-  // Goal Completion Progress
   const goalProgress = useMemo(() => {
     const completed = mySubmissions.filter(item => item.submission?.status === 'reviewed' || item.submission?.status === 'submitted').length;
     const total = mySubmissions.length;
@@ -261,7 +252,6 @@ export function EmployeeCharts() {
 
   return (
     <>
-      {/* Personal Performance Trend */}
       <Card>
         <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <FontAwesomeIcon icon={faChartLine} className="text-purple-600" />
@@ -303,7 +293,6 @@ export function EmployeeCharts() {
         </div>
       </Card>
 
-      {/* Goal Completion Status */}
       <Card>
         <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <FontAwesomeIcon icon={faStar} className="text-yellow-600" />

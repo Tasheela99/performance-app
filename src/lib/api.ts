@@ -1,14 +1,5 @@
-/**
- * API configuration and utilities for backend communication
- * Uses relative URLs for Next.js API routes (works in both dev and production)
- */
-
-// Always use relative URLs for Next.js API routes to work in all environments
 const API_URL = '/api';
 
-/**
- * Generic API error class
- */
 export class APIError extends Error {
   constructor(
     message: string,
@@ -20,9 +11,6 @@ export class APIError extends Error {
   }
 }
 
-/**
- * Make an authenticated API request
- */
 async function fetchAPI(
   endpoint: string,
   options: RequestInit = {}
@@ -59,9 +47,6 @@ async function fetchAPI(
   }
 }
 
-/**
- * Authentication API endpoints
- */
 export const authAPI = {
   login: async (credentials: { email: string; password: string }) => {
     return fetchAPI('/auth/login', {
@@ -114,9 +99,6 @@ export const authAPI = {
   },
 };
 
-/**
- * User API endpoints
- */
 export const userAPI = {
   getProfile: async () => {
     return fetchAPI('/user/profile', {

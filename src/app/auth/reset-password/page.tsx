@@ -103,12 +103,10 @@ function ResetPasswordForm() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Illustration */}
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden">
         <img src="/auth/reset-password.png" alt="Reset Password" className="w-full max-w-2xl h-auto object-contain" />
       </div>
 
-      {/* Right side - Reset Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-lg">
             <div className="text-center mb-8">
@@ -192,7 +190,6 @@ function ResetPasswordForm() {
                     icon={faLock}
                   />
                   
-                  {/* Password requirements */}
                   <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <p className="text-xs font-semibold text-gray-700 mb-2">Password must include:</p>
                     <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">

@@ -8,7 +8,6 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <Link 
             href="/auth/register" 
@@ -29,7 +28,6 @@ export default function PrivacyPolicyPage() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="bg-white rounded-2xl shadow-sm p-8 space-y-6">
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Introduction</h2>
@@ -165,7 +163,6 @@ export default function PrivacyPolicyPage() {
           </section>
         </div>
 
-        {/* Footer */}
         <div className="mt-8 text-center">
           <Link 
             href="/auth/register" 

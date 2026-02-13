@@ -20,11 +20,9 @@ export async function GET(
     const userId = authResult.user!.id;
     const userRole = authResult.user!.role;
 
-    // Build query based on role
     let whereClause: any = { id };
     
     if (userRole === 'employee') {
-      // Employee can only access reviews of their submissions
       whereClause = {
         id,
         submission: {
@@ -32,7 +30,6 @@ export async function GET(
         }
       };
     }
-    // Admin and Manager can access all reviews (no additional where clause)
 
     const review = await prisma.appraisalReview.findFirst({
       where: whereClause,
@@ -147,7 +144,6 @@ export async function PUT(
 
   const user = authResult.user!;
 
-  // Only admin and manager can update reviews
   if (user.role !== 'admin' && user.role !== 'manager') {
     return NextResponse.json(
       { error: 'Only administrators and managers can update reviews' },
@@ -159,7 +155,6 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    // Check if review exists and user has permission
     const review = await prisma.appraisalReview.findFirst({
       where: (user.role === 'admin' || user.role === 'manager')
         ? { id }
@@ -175,7 +170,6 @@ export async function PUT(
 
     const { goalReviews, overallScore, overallComment } = body;
 
-    // Validate scores if provided
     if (overallScore !== undefined && (overallScore < 0 || overallScore > 100)) {
       return NextResponse.json(
         { error: 'Overall score must be between 0 and 100' },
@@ -196,9 +190,7 @@ export async function PUT(
       }
     }
 
-    // Update review in transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Update review
       const updatedReview = await tx.appraisalReview.update({
         where: { id },
         data: {
@@ -207,7 +199,6 @@ export async function PUT(
         },
       });
 
-      // Update goal reviews if provided
       if (goalReviews) {
         for (const gr of goalReviews) {
           await tx.goalReview.updateMany({

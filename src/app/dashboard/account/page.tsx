@@ -150,13 +150,11 @@ export default function AccountManagementPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       showMessage('error', 'Image must be less than 2MB');
       return;
     }
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       showMessage('error', 'Please select a valid image file');
       return;
@@ -182,7 +180,6 @@ export default function AccountManagementPage() {
         const updatedAccountData = { ...accountData, avatar: result.avatarUrl };
         setAccountData(updatedAccountData);
         
-        // Update user context
         const updatedUser = { ...user, avatar: result.avatarUrl };
         updateUser(updatedUser);
         
@@ -208,7 +205,6 @@ export default function AccountManagementPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-9xl mx-auto">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
           <FontAwesomeIcon icon={faUser} className="text-purple-600" />
@@ -217,7 +213,6 @@ export default function AccountManagementPage() {
         <p className="text-gray-500 text-sm mt-1">Manage your account settings and security</p>
       </div>
 
-      {/* Message */}
       {message && (
         <div className={`mb-6 p-4 rounded-lg ${
           message.type === 'success' 
@@ -229,9 +224,7 @@ export default function AccountManagementPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Profile Settings */}
         <div className="space-y-6">
-          {/* Avatar Section */}
           <Card>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h2>
             <div className="flex items-center gap-6">
@@ -285,7 +278,6 @@ export default function AccountManagementPage() {
             </div>
           </Card>
 
-          {/* Account Information */}
           <Card>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h2>
             <form onSubmit={handleAccountUpdate} className="space-y-4">
@@ -329,7 +321,6 @@ export default function AccountManagementPage() {
           </Card>
         </div>
 
-        {/* Security Settings */}
         <div>
           <Card>
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -416,7 +407,6 @@ export default function AccountManagementPage() {
             </form>
           </Card>
 
-          {/* Account Info Display */}
           <Card className="mt-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Account Details</h2>
             <div className="space-y-3 text-sm">

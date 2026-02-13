@@ -11,11 +11,6 @@ export interface AuthenticatedRequest extends NextRequest {
   };
 }
 
-/**
- * Middleware to authenticate users and check if they have admin role
- * @param request NextRequest object
- * @returns Object with user info if authenticated admin, or error response
- */
 export async function requireAdmin(request: NextRequest): Promise<{
   success: boolean;
   user?: {
@@ -27,7 +22,6 @@ export async function requireAdmin(request: NextRequest): Promise<{
   error?: NextResponse;
 }> {
   try {
-    // Get Authorization header
     const authHeader = request.headers.get('authorization');
     
     if (!authHeader) {
@@ -40,7 +34,7 @@ export async function requireAdmin(request: NextRequest): Promise<{
       };
     }
 
-    // Extract token from "Bearer <token>"
+
     const token = authHeader.split(' ')[1];
     if (!token) {
       return {
@@ -52,7 +46,7 @@ export async function requireAdmin(request: NextRequest): Promise<{
       };
     }
 
-    // Verify JWT token
+
     const payload = verifyToken(token);
     if (!payload) {
       return {
@@ -64,7 +58,7 @@ export async function requireAdmin(request: NextRequest): Promise<{
       };
     }
 
-    // Get user from database to verify current status
+
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
       select: {
@@ -85,7 +79,6 @@ export async function requireAdmin(request: NextRequest): Promise<{
       };
     }
 
-    // Check if user is admin
     if (user.role !== 'admin') {
       return {
         success: false,
@@ -118,11 +111,6 @@ export async function requireAdmin(request: NextRequest): Promise<{
   }
 }
 
-/**
- * Middleware to authenticate any user (admin, manager, or employee)
- * @param request NextRequest object
- * @returns Object with user info if authenticated, or error response
- */
 export async function requireAuth(request: NextRequest): Promise<{
   success: boolean;
   user?: {
@@ -134,7 +122,6 @@ export async function requireAuth(request: NextRequest): Promise<{
   error?: NextResponse;
 }> {
   try {
-    // Get Authorization header
     const authHeader = request.headers.get('authorization');
     
     if (!authHeader) {
@@ -147,7 +134,6 @@ export async function requireAuth(request: NextRequest): Promise<{
       };
     }
 
-    // Extract token from "Bearer <token>"
     const token = authHeader.split(' ')[1];
     if (!token) {
       return {
@@ -159,7 +145,6 @@ export async function requireAuth(request: NextRequest): Promise<{
       };
     }
 
-    // Verify JWT token
     const payload = verifyToken(token);
     if (!payload) {
       return {
@@ -171,7 +156,6 @@ export async function requireAuth(request: NextRequest): Promise<{
       };
     }
 
-    // Get user from database to verify current status
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
       select: {

@@ -5,15 +5,15 @@ import Card from '@/components/ui/Card';
 import { useAppraisal } from '@/contexts/AppraisalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  faCalendarAlt,
-  faCheckCircle,
-  faClock,
-  faExclamationTriangle,
-  faFileAlt,
-  faPenToSquare,
-  faRefresh,
-  faStar,
-  faUser,
+    faCalendarAlt,
+    faCheckCircle,
+    faClock,
+    faExclamationTriangle,
+    faFileAlt,
+    faPenToSquare,
+    faRefresh,
+    faStar,
+    faUser,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useRouter } from 'next/navigation';
@@ -101,7 +101,7 @@ export default function MyAppraisalsPage() {
             return (
               <Card key={template.id} className="!p-0 overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="flex flex-col lg:flex-row">
-                  {/* Left accent */}
+
                   <div className={`w-full lg:w-1.5 h-1.5 lg:h-auto ${review ? 'bg-green-500' : submission ? 'bg-yellow-500' : 'bg-purple-500'}`} />
 
                   <div className="flex-1 p-5">
@@ -124,7 +124,7 @@ export default function MyAppraisalsPage() {
                       </span>
                     </div>
 
-                    {/* Meta */}
+
                     <div className="flex flex-wrap gap-4 text-xs text-gray-500 mb-4">
                       <span className="flex items-center gap-1.5">
                       <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400" />
@@ -144,7 +144,7 @@ export default function MyAppraisalsPage() {
                       </span>
                     </div>
 
-                    {/* Goals preview */}
+
                     <div className="flex flex-wrap gap-1.5 mb-4">
                       {template.goals.map((g) => (
                         <span key={g.id} className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-medium">
@@ -153,7 +153,7 @@ export default function MyAppraisalsPage() {
                       ))}
                     </div>
 
-                    {/* Review score if reviewed */}
+
                     {review && (
                       <div className="p-3 bg-green-50 border border-green-100 rounded-lg mb-4">
                         <div className="flex items-center gap-3">
@@ -169,7 +169,7 @@ export default function MyAppraisalsPage() {
                       </div>
                     )}
 
-                    {/* Actions */}
+
                     <div className="flex gap-2">
                       {!submission || submission.status === 'pending' || submission.status === 'inProgress' ? (
                         <Button

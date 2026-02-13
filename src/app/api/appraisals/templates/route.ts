@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
     let templates;
 
     if (userRole === 'admin' || userRole === 'manager') {
-      // Admin and Manager can see all templates (draft, published, closed)
       templates = await prisma.appraisalTemplate.findMany({
         include: {
           createdBy: {
@@ -37,7 +36,6 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' },
       });
     } else {
-      // Employee can only see PUBLISHED templates assigned to them
       templates = await prisma.appraisalTemplate.findMany({
         where: {
           AND: [
@@ -47,7 +45,7 @@ export async function GET(request: NextRequest) {
               }
             },
             {
-              status: 'published' // Only show published templates to employees
+              status: 'published'
             }
           ]
         },
@@ -71,7 +69,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Transform data to match frontend types
     const formattedTemplates = templates.map(template => ({
       id: template.id,
       title: template.title,
@@ -121,7 +118,6 @@ export async function POST(request: NextRequest) {
 
   const user = authResult.user!;
 
-  // Only admin and manager can create templates
   if (user.role !== 'admin' && user.role !== 'manager') {
     return NextResponse.json(
       { error: 'Only administrators and managers can create templates' },
@@ -133,7 +129,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, description, period, deadline, assignedTo, goals } = body;
 
-    // Validation
     if (!title || !period || !deadline || !goals || goals.length === 0) {
       return NextResponse.json(
         { error: 'Title, period, deadline, and at least one goal are required' },
@@ -141,7 +136,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate goal weightage adds up to 100
     const totalWeightage = goals.reduce((sum: number, goal: any) => sum + (goal.weightage || 0), 0);
     if (totalWeightage !== 100) {
       return NextResponse.json(
@@ -150,7 +144,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate section distribution
     const taskGoals = goals.filter((goal: any) => goal.section === 'tasks');
     const competencyGoals = goals.filter((goal: any) => goal.section === 'competencies');
     
@@ -161,9 +154,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create template with goals in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Create template
       const template = await tx.appraisalTemplate.create({
         data: {
           title,
@@ -175,7 +166,6 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Create goals
       const goalPromises = goals.map((goal: any, index: number) =>
         tx.goal.create({
           data: {
@@ -183,7 +173,7 @@ export async function POST(request: NextRequest) {
             title: goal.title,
             description: goal.description || '',
             category: goal.category,
-            section: goal.section || 'tasks', // Default to tasks section
+            section: goal.section || 'tasks',
             weightage: goal.weightage,
             goalOrder: index + 1,
           },
@@ -191,7 +181,6 @@ export async function POST(request: NextRequest) {
       );
       const createdGoals = await Promise.all(goalPromises);
 
-      // Create assignments if provided
       if (assignedTo && assignedTo.length > 0) {
         const assignmentPromises = assignedTo.map((employeeId: string) =>
           tx.templateAssignment.create({

@@ -7,7 +7,6 @@ const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
 const SMTP_FROM = process.env.SMTP_FROM || 'noreply@performancemanagement.com';
 
-// Create reusable transporter
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
   port: SMTP_PORT,
@@ -27,7 +26,6 @@ export interface SendEmailOptions {
 
 export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
   try {
-    // Skip sending email in development if SMTP is not configured
     if (!SMTP_USER || !SMTP_PASSWORD) {
       console.log('📧 Email not configured. Would have sent:');
       console.log(`To: ${options.to}`);
@@ -52,32 +50,20 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
   }
 }
 
-/**
- * Generate a 6-digit OTP code
- */
 export function generateOTP(): string {
   return randomInt(100000, 999999).toString();
 }
 
-/**
- * Check if OTP token is expired
- */
 export function isOTPExpired(expiryDate: Date): boolean {
   return new Date() > expiryDate;
 }
 
-/**
- * Create OTP expiry date (15 minutes from now)
- */
 export function createOTPExpiry(): Date {
   const expiry = new Date();
   expiry.setMinutes(expiry.getMinutes() + 15);
   return expiry;
 }
 
-/**
- * Send verification email with OTP
- */
 export async function sendVerificationEmail(email: string, name: string, otp: string): Promise<boolean> {
   const html = `
     <!DOCTYPE html>
@@ -166,7 +152,6 @@ export async function sendPasswordResetEmail(
   resetToken: string,
   userName: string
 ): Promise<boolean> {
-  // Use NEXT_PUBLIC_API_URL for production, or construct URL from VERCEL_URL, fallback to localhost
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
   const resetUrl = `${baseUrl}/auth/reset-password?token=${resetToken}`;

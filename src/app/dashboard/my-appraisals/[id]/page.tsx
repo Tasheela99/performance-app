@@ -40,7 +40,6 @@ export default function FillAppraisalPage() {
 
   const isReadOnly = existingSubmission?.status === 'submitted' || existingSubmission?.status === 'reviewed';
 
-  // Hydrate from existing submission
   useEffect(() => {
     if (template) {
       if (existingSubmission) {
@@ -57,7 +56,6 @@ export default function FillAppraisalPage() {
     }
   }, [template, existingSubmission]);
 
-  // Refresh data if template not found initially (might be newly published)
   useEffect(() => {
     if (user && templateId && !template) {
       console.log('Template not found, refreshing data...');
@@ -108,7 +106,6 @@ export default function FillAppraisalPage() {
     try {
       setIsSubmitting(true);
       
-      // First, save the current responses (creates submission if doesn't exist)
       const savedSubmission = await saveSubmission({
         templateId,
         employeeId: user.id,
@@ -118,7 +115,6 @@ export default function FillAppraisalPage() {
         status: 'inProgress',
       });
       
-      // Then submit the appraisal using the saved submission
       const submissionId = savedSubmission?.id || existingSubmission?.id;
       if (!submissionId) {
         throw new Error('Unable to create or find submission');
@@ -138,7 +134,6 @@ export default function FillAppraisalPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-9xl mx-auto">
-      {/* Back */}
       <button
         onClick={() => router.push('/dashboard/my-appraisals')}
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6 transition"
@@ -146,7 +141,6 @@ export default function FillAppraisalPage() {
         <FontAwesomeIcon icon={faArrowLeft} /> Back to My Appraisals
       </button>
 
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">{template.title}</h1>
         <p className="text-gray-500 text-sm">{template.description}</p>
@@ -166,7 +160,6 @@ export default function FillAppraisalPage() {
         </div>
       </div>
 
-      {/* Progress bar */}
       <Card className="!p-4 mb-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-700">Your Progress</span>
@@ -180,7 +173,6 @@ export default function FillAppraisalPage() {
         </div>
       </Card>
 
-      {/* Review score banner (if reviewed) */}
       {review && (
         <Card className="!p-5 mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200">
           <div className="flex items-center gap-4">
@@ -197,7 +189,6 @@ export default function FillAppraisalPage() {
         </Card>
       )}
 
-      {/* Goals */}
       <div className="space-y-5 mb-8">
         {template.goals.map((goal, idx) => {
           const response = responses.find((r) => r.goalId === goal.id);
@@ -205,7 +196,6 @@ export default function FillAppraisalPage() {
 
           return (
             <Card key={goal.id} className="!p-0 overflow-hidden">
-              {/* Goal header */}
               <div className="bg-gradient-to-r from-purple-50 to-purple-100/50 px-5 py-4 border-b">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 bg-purple-600 text-white rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0">
@@ -229,7 +219,6 @@ export default function FillAppraisalPage() {
                 </div>
               </div>
 
-              {/* Employee response */}
               <div className="p-5">
                 <label className="block text-xs font-semibold text-gray-600 mb-2">
                   Your Self-Assessment
@@ -248,7 +237,6 @@ export default function FillAppraisalPage() {
                   />
                 )}
 
-                {/* Manager review for this goal */}
                 {goalReview && (
                   <div className="mt-4 p-3 bg-green-50 border border-green-100 rounded-lg">
                     <div className="flex items-center justify-between mb-1">
@@ -266,7 +254,6 @@ export default function FillAppraisalPage() {
         })}
       </div>
 
-      {/* Overall comment */}
       <Card className="!p-5 mb-6">
         <label className="block text-sm font-semibold text-gray-700 mb-2">
           Overall Comments
@@ -286,7 +273,6 @@ export default function FillAppraisalPage() {
         )}
       </Card>
 
-      {/* Actions */}
       {!isReadOnly && (
         <div className="flex items-center justify-between">
           <div>
@@ -316,7 +302,6 @@ export default function FillAppraisalPage() {
         </div>
       )}
 
-      {/* Submit confirmation modal */}
       {showSubmitConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <Card className="max-w-md w-full text-center">

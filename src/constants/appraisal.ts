@@ -1,4 +1,3 @@
-// ── Performance Sections and Weightages ────────────────────────────────
 export const PERFORMANCE_SECTIONS = {
   TASKS: 'tasks',
   COMPETENCIES: 'competencies',
@@ -9,7 +8,6 @@ export const SECTION_WEIGHTAGES = {
   [PERFORMANCE_SECTIONS.COMPETENCIES]: 20,
 } as const;
 
-// ── Performance Classifications ─────────────────────────────────────────
 export const PERFORMANCE_CLASSIFICATIONS = {
   EXCEPTIONAL: { min: 101, max: Infinity, label: 'Exceptional', color: 'purple' },
   EXCELLENT: { min: 91, max: 100, label: 'Excellent', color: 'green' },
@@ -21,13 +19,11 @@ export const PERFORMANCE_CLASSIFICATIONS = {
   NEEDS_CRITICAL_IMPROVEMENT: { min: 0, max: 50, label: 'Needs Critical Improvement', color: 'red' },
 } as const;
 
-// ── Recognition Rules ───────────────────────────────────────────────────
 export const RECOGNITION_RULES = {
   CONSECUTIVE_EXCELLENT_FOR_INCREMENT: 3,
   INCREMENTS_FOR_PRESIDENTIAL_AWARD: 3,
 } as const;
 
-// ── Predefined goal categories ───────────────────────────────────────────
 export const GOAL_CATEGORIES = [
   'Technical Skills',
   'Soft Skills',
@@ -41,7 +37,6 @@ export const GOAL_CATEGORIES = [
   'Other',
 ] as const;
 
-// ── Period options ──────────────────────────────────────────────────────
 export const PERIOD_OPTIONS = [
   'Q1 2026',
   'Q2 2026',
@@ -52,7 +47,6 @@ export const PERIOD_OPTIONS = [
   'Annual 2026',
 ] as const;
 
-// ── Helper functions ────────────────────────────────────────────────────
 export const getPerformanceClassification = (score: number): { key: string; min: number; max: number; label: string; color: string } => {
   for (const [key, classification] of Object.entries(PERFORMANCE_CLASSIFICATIONS)) {
     if (score >= classification.min && score <= classification.max) {

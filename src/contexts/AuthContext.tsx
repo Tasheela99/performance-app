@@ -14,7 +14,6 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Use relative URLs for Next.js API routes (works in both dev and production)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export function AuthProvider({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -22,7 +21,6 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in (from localStorage or session)
     const checkAuth = () => {
       try {
         const storedUser = localStorage.getItem('user');
@@ -89,7 +87,6 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
 
       const result = await response.json();
       
-      // Return verification requirement instead of auto-login
       return {
         needsVerification: result.needsVerification || false,
         email: result.email

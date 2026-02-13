@@ -7,13 +7,13 @@ import { useAppraisal } from '@/contexts/AppraisalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppraisalGoal, AppraisalTemplate } from '@/types/appraisal.types';
 import {
-  faClipboardList,
-  faEye,
-  faPlus,
-  faSearch,
-  faTimes,
-  faTrash,
-  faUpload
+    faClipboardList,
+    faEye,
+    faPlus,
+    faSearch,
+    faTimes,
+    faTrash,
+    faUpload
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useRouter } from 'next/navigation';
@@ -34,7 +34,6 @@ export default function AppraisalsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'draft' | 'published' | 'closed'>('all');
 
-  // Get templates for user (this is safe to call even if user is null)
   const templates = user ? getTemplatesForUser(user) : [];
   
   const filtered = useMemo(
@@ -56,7 +55,6 @@ export default function AppraisalsPage() {
 
   return (
     <div className="p-6 lg:p-8">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Appraisal Templates</h1>
@@ -67,7 +65,6 @@ export default function AppraisalsPage() {
         </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1 max-w-md">
           <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -96,7 +93,6 @@ export default function AppraisalsPage() {
         </div>
       </div>
 
-      {/* Template cards */}
       {filtered.length === 0 ? (
         <Card className="text-center py-16">
           <FontAwesomeIcon icon={faClipboardList} className="text-4xl text-gray-300 mb-4" />
@@ -118,7 +114,6 @@ export default function AppraisalsPage() {
         </div>
       )}
 
-      {/* Create Modal */}
       {showCreateModal && (
         <CreateTemplateModal
           user={user}
@@ -133,7 +128,6 @@ export default function AppraisalsPage() {
   );
 }
 
-// ─── Template Card ──────────────────────────────────────────────────
 function TemplateCard({
   template,
   submissionCount,
@@ -211,7 +205,6 @@ function TemplateCard({
   );
 }
 
-// ─── Create Template Modal ──────────────────────────────────────────
 function CreateTemplateModal({
   user,
   onCreate,
@@ -236,7 +229,6 @@ function CreateTemplateModal({
     weightage: 25,
   });
 
-  // Load employees when modal opens
   React.useEffect(() => {
     loadEmployees();
   }, [loadEmployees]);
@@ -288,7 +280,6 @@ function CreateTemplateModal({
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        {/* Modal header */}
         <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10 rounded-t-2xl">
           <h2 className="text-lg font-bold text-gray-900">Create Appraisal Template</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
@@ -297,7 +288,6 @@ function CreateTemplateModal({
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Basic info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
@@ -341,13 +331,10 @@ function CreateTemplateModal({
             </div>
           </div>
 
-          {/* Assign employees */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">Assign Employees</label>
             
-            {/* Assignment Controls */}
             <div className="space-y-4">
-              {/* Assign All Toggle */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">Assign All Employees</span>
@@ -375,7 +362,6 @@ function CreateTemplateModal({
                 </button>
               </div>
 
-              {/* Individual Employee Dropdown Selection */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">Or select individually:</span>
@@ -402,7 +388,6 @@ function CreateTemplateModal({
                 </div>
               </div>
 
-              {/* Selected Employees List */}
               {assignedTo.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -448,7 +433,6 @@ function CreateTemplateModal({
                 </div>
               )}
 
-              {/* No employees selected state */}
               {assignedTo.length === 0 && (
                 <div className="text-center py-4 text-gray-500 text-sm">
                   No employees assigned yet. Use "Assign All" or select individual employees.
@@ -457,7 +441,6 @@ function CreateTemplateModal({
             </div>
           </div>
 
-          {/* Goals */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-gray-700">
@@ -476,7 +459,6 @@ function CreateTemplateModal({
               )}
             </div>
 
-            {/* Existing goals */}
             {goals.length > 0 && (
               <div className="space-y-2 mb-4">
                 {goals.map((g, idx) => (
@@ -499,7 +481,6 @@ function CreateTemplateModal({
               </div>
             )}
 
-            {/* Add new goal form */}
             <div className="p-4 bg-purple-50/50 border border-purple-100 rounded-xl space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <input
@@ -557,7 +538,6 @@ function CreateTemplateModal({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-6 border-t sticky bottom-0 bg-white rounded-b-2xl">
           <Button variant="outline" onClick={onClose}>
             Cancel

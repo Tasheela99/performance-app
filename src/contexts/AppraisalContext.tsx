@@ -13,7 +13,6 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 
 const AppraisalContext = createContext<AppraisalContextType | undefined>(undefined);
 
-// Helper function to get auth token from localStorage
 const getAuthToken = () => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('token');
@@ -21,7 +20,6 @@ const getAuthToken = () => {
   return null;
 };
 
-// Helper function for API calls
 const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   const token = getAuthToken();
   const response = await fetch(`/api/appraisals${endpoint}`, {
@@ -41,7 +39,6 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   return response.json();
 };
 
-// Helper function for employee API calls
 const employeeApiCall = async (endpoint: string, options: RequestInit = {}) => {
   const token = getAuthToken();
   const response = await fetch(`/api${endpoint}`, {
@@ -72,14 +69,12 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
   const [isLoadingPerformance, setIsLoadingPerformance] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
 
-  // Load data from APIs
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
       const token = getAuthToken();
       
       if (!token) {
-        // If no token, clear data and stop loading
         setTemplates([]);
         setSubmissions([]);
         setReviews([]);
@@ -87,7 +82,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Load templates, submissions, and reviews in parallel
       const [templatesData, submissionsData, reviewsData] = await Promise.all([
         apiCall('/templates'),
         apiCall('/submissions'),
@@ -100,7 +94,7 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       setLastRefreshTime(Date.now());
     } catch (error) {
       console.error('Failed to load appraisal data:', error);
-      // Reset data on error
+
       setTemplates([]);
       setSubmissions([]);
       setReviews([]);
@@ -109,14 +103,12 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Load employees from API
   const loadEmployees = useCallback(async () => {
     try {
       setIsLoadingEmployees(true);
       const token = getAuthToken();
       
       if (!token) {
-        // If no token, clear employees and stop loading
         setEmployees([]);
         setIsLoadingEmployees(false);
         return;
@@ -126,24 +118,20 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       setEmployees(employeesData.employees || []);
     } catch (error) {
       console.error('Failed to load employees:', error);
-      // Reset employees on error
       setEmployees([]);
     } finally {
       setIsLoadingEmployees(false);
     }
   }, []);
 
-  // Force refresh data function
   const refreshData = useCallback(async () => {
     console.log('Manually refreshing appraisal data...');
     await loadData();
   }, [loadData]);
 
-  // Load data on mount and when token changes
   useEffect(() => {
     loadData();
     
-    // Listen for storage changes to reload data when token changes
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'token') {
         loadData();
@@ -154,7 +142,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [loadData]);
 
-  // Auto-refresh data for employees every 30 seconds to catch newly published templates
   useEffect(() => {
     const token = getAuthToken();
     if (!token) return;
@@ -165,13 +152,12 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
       const interval = setInterval(() => {
         console.log('Auto-refreshing data for employee...');
         loadData();
-      }, 30000); // Refresh every 30 seconds
+      }, 30000);
 
       return () => clearInterval(interval);
     }
   }, [loadData]);
 
-  // ── Template operations (admin / manager) ────────────────────────
   const createTemplate = useCallback(
     async (template: Omit<AppraisalTemplate, 'id' | 'createdAt'>) => {
       try {
@@ -180,7 +166,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify(template),
         });
         
-        // Add the new template to state
         setTemplates(prev => [data.template, ...prev]);
         return data.template;
       } catch (error) {
@@ -199,10 +184,8 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify(updates),
         });
 
-        // Update the template in state
         setTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
         
-        // Reload data to ensure consistency
         loadData();
         return data.template;
       } catch (error) {
@@ -220,15 +203,12 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
           method: 'POST',
         });
 
-        // Update template status in state
         setTemplates(prev => prev.map(t => 
           t.id === id ? { ...t, status: 'published' as any } : t
         ));
         
-        // Reload data to get new submissions
         await loadData();
         
-        // Small delay and reload again to ensure all systems are updated
         setTimeout(() => {
           console.log('Secondary refresh after template publish...');
           loadData();
@@ -248,7 +228,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
           method: 'DELETE',
         });
 
-        // Remove template from state
         setTemplates(prev => prev.filter(t => t.id !== id));
       } catch (error) {
         console.error('Failed to delete template:', error);
@@ -265,12 +244,10 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({ assignedTo: employeeIds }),
         });
 
-        // Update template in state
         setTemplates(prev => prev.map(t => 
           t.id === templateId ? { ...t, assignedTo: employeeIds } : t
         ));
         
-        // Reload data to get fresh submissions
         await loadData();
       } catch (error) {
         console.error('Failed to assign employees:', error);
@@ -279,18 +256,16 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     },
     [loadData],
   );
-  // ── Submission operations (employee) ─────────────────────────────
+
   const saveSubmission = useCallback(
     async (submission: Omit<AppraisalSubmission, 'id'>) => {
       try {
-        // Find existing submission by templateId and employeeId
         let existingSubmission = submissions.find(s => 
           s.templateId === submission.templateId && 
           s.employeeId === submission.employeeId
         );
 
         if (existingSubmission) {
-          // Update existing submission
           const data = await apiCall(`/submissions/${existingSubmission.id}`, {
             method: 'PUT',
             body: JSON.stringify({
@@ -299,7 +274,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
             }),
           });
 
-          // Update submission in state
           setSubmissions(prev => prev.map(s => 
             s.id === existingSubmission.id 
               ? { ...s, responses: submission.responses, overallComment: submission.overallComment }
@@ -308,7 +282,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
 
           return existingSubmission;
         } else {
-          // Create new submission if it doesn't exist
           console.log('Creating new submission for template:', submission.templateId);
           
           const data = await apiCall('/submissions', {
@@ -323,7 +296,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
             }),
           });
 
-          // Add new submission to state
           const newSubmission = data.submission;
           setSubmissions(prev => [...prev, newSubmission]);
           
@@ -344,14 +316,12 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
           method: 'POST',
         });
 
-        // Update submission status in state
         setSubmissions(prev => prev.map(s => 
           s.id === submissionId 
             ? { ...s, status: 'submitted' as any, submittedAt: new Date().toISOString() }
             : s
         ));
         
-        // Reload data to ensure consistency across all views
         await loadData();
       } catch (error) {
         console.error('Failed to submit appraisal:', error);
@@ -361,7 +331,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     [loadData],
   );
 
-  // ── Review operations (admin/manager) ────────────────────────────
   const submitReview = useCallback(
     async (review: Omit<AppraisalReview, 'id' | 'reviewedAt'>) => {
       try {
@@ -374,10 +343,8 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
           }),
         });
 
-        // Add review to state
         setReviews(prev => [data.review, ...prev]);
         
-        // Update submission status
         setSubmissions(prev => prev.map(s => 
           s.id === review.submissionId 
             ? { ...s, status: 'reviewed' as any }
@@ -393,7 +360,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  // ── Performance tracking operations (admin/manager) ─────────────
   const loadPerformanceTrackings = useCallback(async () => {
     try {
       setIsLoadingPerformance(true);
@@ -428,14 +394,11 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // ── Query helpers ─────────────────────────────────────────────────
   const getTemplatesForUser = useCallback(
     (user: User): AppraisalTemplate[] => {
       if (user.role === 'admin' || user.role === 'manager') {
-        // Admin and Manager can see all templates (draft, published, closed)
         return templates;
       } else {
-        // Employee can only see PUBLISHED templates assigned to them
         return templates.filter((t) => 
           t.assignedTo.includes(user.id) && t.status === 'published'
         );
@@ -465,7 +428,6 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     [reviews],
   );
 
-  // Context value
   const contextValue = useMemo(
     (): AppraisalContextType => ({
       templates,

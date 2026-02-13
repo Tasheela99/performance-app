@@ -20,7 +20,6 @@ export async function GET(
     const userId = authResult.user!.id;
     const userRole = authResult.user!.role;
 
-    // Build query based on role
     const whereClause = (userRole === 'admin' || userRole === 'manager')
       ? { id }
       : {
@@ -122,7 +121,6 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    // Check if template exists and user has permission to update it
     const existingTemplate = await prisma.appraisalTemplate.findFirst({
       where: (user.role === 'admin' || user.role === 'manager')
         ? { id }
@@ -139,7 +137,6 @@ export async function PUT(
       );
     }
 
-    // Can't update if there are submissions and status is not draft
     if (existingTemplate.submissions.length > 0 && existingTemplate.status !== 'draft') {
       return NextResponse.json(
         { error: 'Cannot update template that has submissions and is not in draft status' },
@@ -149,7 +146,6 @@ export async function PUT(
 
     const { title, description, period, deadline, assignedTo, goals, status } = body;
 
-    // Validate goal weightage if goals are provided
     if (goals) {
       const totalWeightage = goals.reduce((sum: number, goal: any) => sum + (goal.weightage || 0), 0);
       if (totalWeightage !== 100) {
@@ -160,9 +156,7 @@ export async function PUT(
       }
     }
 
-    // Update template in transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Update template
       const updatedTemplate = await tx.appraisalTemplate.update({
         where: { id },
         data: {
@@ -174,14 +168,11 @@ export async function PUT(
         },
       });
 
-      // Update goals if provided
       if (goals) {
-        // Delete existing goals
         await tx.goal.deleteMany({
           where: { templateId: id }
         });
 
-        // Create new goals
         const goalPromises = goals.map((goal: any, index: number) =>
           tx.goal.create({
             data: {
@@ -197,21 +188,17 @@ export async function PUT(
         await Promise.all(goalPromises);
       }
 
-      // Update assignments if provided
       if (assignedTo !== undefined) {
-        // Get existing assignment IDs before deletion
         const existingAssignments = await tx.templateAssignment.findMany({
           where: { templateId: id },
           select: { employeeId: true }
         });
         const existingEmployeeIds = new Set(existingAssignments.map(a => a.employeeId));
 
-        // Delete existing assignments
         await tx.templateAssignment.deleteMany({
           where: { templateId: id }
         });
 
-        // Create new assignments
         if (assignedTo.length > 0) {
           const assignmentPromises = assignedTo.map((employeeId: string) =>
             tx.templateAssignment.create({
@@ -223,18 +210,15 @@ export async function PUT(
           );
           await Promise.all(assignmentPromises);
 
-          // If template is published, create submissions for newly assigned employees
           if (updatedTemplate.status === 'published') {
             const newEmployeeIds = assignedTo.filter((empId: string) => !existingEmployeeIds.has(empId));
             
             if (newEmployeeIds.length > 0) {
-              // Get employee details for new assignments
               const newEmployees = await tx.user.findMany({
                 where: { id: { in: newEmployeeIds } },
                 select: { id: true, name: true, email: true }
               });
 
-              // Create submissions for newly assigned employees
               const submissionPromises = newEmployees.map(employee =>
                 tx.appraisalSubmission.create({
                   data: {
@@ -290,7 +274,6 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // Check if template exists and user has permission to delete it
     const template = await prisma.appraisalTemplate.findFirst({
       where: (user.role === 'admin' || user.role === 'manager')
         ? { id }
@@ -307,7 +290,6 @@ export async function DELETE(
       );
     }
 
-    // Can't delete if there are submissions
     if (template.submissions.length > 0) {
       return NextResponse.json(
         { error: 'Cannot delete template that has submissions' },
@@ -315,7 +297,6 @@ export async function DELETE(
       );
     }
 
-    // Delete template (cascade will handle goals and assignments)
     await prisma.appraisalTemplate.delete({
       where: { id }
     });

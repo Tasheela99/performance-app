@@ -10,7 +10,6 @@ export async function POST(request: NextRequest) {
 
   const user = authResult.user!;
 
-  // Only admin can run migrations
   if (user.role !== 'admin') {
     return NextResponse.json(
       { error: 'Only administrators can run migrations' },

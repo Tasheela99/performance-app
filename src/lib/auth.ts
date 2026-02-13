@@ -1,12 +1,11 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import crypto from 'node:crypto';
 import { NextRequest } from 'next/server';
+import crypto from 'node:crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '7d';
 
-// Password hashing
 export async function hashPassword(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(10);
   return bcrypt.hash(password, salt);
@@ -19,7 +18,6 @@ export async function comparePassword(
   return bcrypt.compare(password, hashedPassword);
 }
 
-// JWT token generation and verification
 export interface JWTPayload {
   userId: string;
   email: string;
@@ -32,14 +30,13 @@ export function generateToken(payload: JWTPayload): string {
 
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+    const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return payload;
   } catch (error) {
-    console.error('JWT verification error:', error);
     return null;
   }
 }
 
-// Verify token from NextRequest
 export async function verifyTokenFromRequest(
   request: NextRequest
 ): Promise<{ userId: string; error?: string } | { userId?: never; error: string }> {
@@ -50,7 +47,7 @@ export async function verifyTokenFromRequest(
       return { error: 'No authorization token provided' };
     }
 
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    const token = authHeader.substring(7);
     const payload = verifyToken(token);
 
     if (!payload) {
@@ -64,18 +61,15 @@ export async function verifyTokenFromRequest(
   }
 }
 
-// Password reset token generation
 export function generateResetToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
-// Email validation
 export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
 
-// Password strength validation
 export function isStrongPassword(password: string): {
   valid: boolean;
   message?: string;

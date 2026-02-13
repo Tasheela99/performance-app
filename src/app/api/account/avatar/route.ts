@@ -15,7 +15,7 @@ const s3Client = new S3Client({
 });
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME || 'performance-management-bucket-pmd';
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         { error: 'File size exceeds 2MB limit' },
@@ -39,7 +38,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       return NextResponse.json(
         { error: 'Only image files are allowed' },
@@ -47,29 +45,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique filename
     const fileExtension = file.name.split('.').pop();
     const fileName = `avatars/${userId}/${uuidv4()}.${fileExtension}`;
 
-    // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Upload to S3
     const uploadCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: fileName,
       Body: buffer,
       ContentType: file.type,
-      // Note: ACL removed - use bucket policy for public access instead
     });
 
     await s3Client.send(uploadCommand);
 
-    // Generate S3 URL
     const avatarUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'ap-south-1'}.amazonaws.com/${fileName}`;
 
-    // Update user's avatar in database
     await prisma.user.update({
       where: { id: userId },
       data: {

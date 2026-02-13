@@ -28,7 +28,6 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Get current user
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { passwordHash: true }
@@ -41,7 +40,6 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!isCurrentPasswordValid) {
       return NextResponse.json(
@@ -50,10 +48,8 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Hash new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password
     await prisma.user.update({
       where: { id: userId },
       data: {

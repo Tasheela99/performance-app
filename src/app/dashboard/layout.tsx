@@ -31,7 +31,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
-      {/* ml-64 matches the sidebar width; the sidebar handles its own collapsed state */}
       <main className="flex-1 ml-20 lg:ml-64 transition-all duration-300">
         {children}
       </main>

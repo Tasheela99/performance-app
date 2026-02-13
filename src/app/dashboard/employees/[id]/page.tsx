@@ -161,7 +161,6 @@ export default function EmployeeProgressPage() {
 
   const { employee, statistics, scoreTrend, categoryPerformance, statusDistribution, recentSubmissions } = progressData;
 
-  // Prepare status distribution data for pie chart
   const statusPieData = [
     { name: 'Pending', value: statusDistribution.pending, color: CHART_COLORS.warning },
     { name: 'In Progress', value: statusDistribution.inProgress, color: CHART_COLORS.info },
@@ -169,7 +168,6 @@ export default function EmployeeProgressPage() {
     { name: 'Reviewed', value: statusDistribution.reviewed, color: CHART_COLORS.success },
   ].filter(item => item.value > 0);
 
-  // Get performance status based on average score
   const getPerformanceStatus = (score: number) => {
     if (score >= 80) return { label: 'Excellent', color: 'text-green-600 bg-green-100' };
     if (score >= 60) return { label: 'Good', color: 'text-blue-600 bg-blue-100' };
@@ -181,7 +179,6 @@ export default function EmployeeProgressPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-9xl mx-auto">
-      {/* Header */}
       <div className="mb-6">
         <button
           onClick={() => router.push('/dashboard/users')}
@@ -193,7 +190,6 @@ export default function EmployeeProgressPage() {
         <p className="text-gray-500 text-sm mt-1">Comprehensive performance overview and analytics</p>
       </div>
 
-      {/* Employee Info Card */}
       <Card className="!p-6 mb-6">
         <div className="flex items-start gap-6">
           <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center flex-shrink-0">
@@ -230,7 +226,6 @@ export default function EmployeeProgressPage() {
         </div>
       </Card>
 
-      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card className="!p-4">
           <div className="flex items-center gap-3">
@@ -281,9 +276,7 @@ export default function EmployeeProgressPage() {
         </Card>
       </div>
 
-      {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Score Trend Line Chart */}
         <Card className="!p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <FontAwesomeIcon icon={faChartLine} className="text-purple-600" />
@@ -320,7 +313,6 @@ export default function EmployeeProgressPage() {
           )}
         </Card>
 
-        {/* Status Distribution Pie Chart */}
         <Card className="!p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <FontAwesomeIcon icon={faTrophy} className="text-purple-600" />
@@ -355,7 +347,6 @@ export default function EmployeeProgressPage() {
         </Card>
       </div>
 
-      {/* Category Performance Bar Chart */}
       {categoryPerformance.length > 0 && (
         <Card className="!p-6 mb-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -381,7 +372,6 @@ export default function EmployeeProgressPage() {
         </Card>
       )}
 
-      {/* Recent Submissions Table */}
       <Card className="!p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Submissions</h3>
         {recentSubmissions.length > 0 ? (

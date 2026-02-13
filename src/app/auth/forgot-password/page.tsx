@@ -49,15 +49,12 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex overflow-hidden">
-      {/* Left side - Illustration */}
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden min-h-screen">
         <img src="/auth/forgot-password.png" alt="Forgot Password" className="w-full max-w-2xl h-auto object-contain" />
       </div>
 
-      {/* Right side - Forgot Password Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50 min-h-screen">
         <div className="w-full max-w-sm">
-          {/* Header */}
           <div className="mb-4">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-2xl mb-4 shadow-lg">
               <FontAwesomeIcon icon={faPaperPlane} className="text-white text-2xl" />
@@ -71,7 +68,6 @@ export default function ForgotPasswordPage() {
             </p>
           </div>
 
-          {/* Form or Success Message */}
           {isSuccess ? (
             <div className="max-w-sm mx-auto">
               <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl">

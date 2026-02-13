@@ -2,7 +2,6 @@ import { verifyToken } from '@/lib/auth';
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Use singleton pattern for Prisma client to avoid connection issues
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
@@ -13,7 +12,6 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 export async function GET(request: NextRequest) {
   try {
-    // Get token from Authorization header instead of cookie
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
     
@@ -27,7 +25,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
     }
 
-    // Only admins can access user management
     if (decoded.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
@@ -61,7 +58,6 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    // Get token from Authorization header instead of cookie
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
     
@@ -75,7 +71,6 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
     }
 
-    // Only admins can update user roles
     if (decoded.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
@@ -87,7 +82,6 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'User ID and role are required' }, { status: 400 });
     }
 
-    // Validate role
     const validRoles = ['admin', 'manager', 'employee'];
     if (!validRoles.includes(role)) {
       return NextResponse.json(
@@ -96,7 +90,6 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Prevent admins from demoting themselves
     if (userId === decoded.userId && role !== 'admin') {
       return NextResponse.json(
         { error: 'Cannot change your own admin role for security reasons' },
@@ -129,7 +122,6 @@ export async function PUT(request: NextRequest) {
   } catch (error: any) {
     console.error('Error updating user:', error);
     
-    // Handle Prisma-specific errors
     if (error?.code === 'P2002') {
       const target = error.meta?.target;
       const field = Array.isArray(target) ? target[0] : 'field';

@@ -4,13 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    // Test database connection first
     await prisma.$connect();
     
     const body = await request.json();
     const { email, password } = body;
 
-    // Validation
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
@@ -25,7 +23,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user using Prisma
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
       select: {
@@ -48,7 +45,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user is verified
     if (!user.isVerified) {
       return NextResponse.json(
         { 
@@ -60,7 +56,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify password
     const isValidPassword = await comparePassword(password, user.passwordHash);
     if (!isValidPassword) {
       return NextResponse.json(
@@ -69,14 +64,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate JWT token
     const token = generateToken({
       userId: user.id,
       email: user.email,
       role: user.role,
     });
 
-    // Return user data and token
     return NextResponse.json(
       {
         message: 'Login successful',
@@ -97,7 +90,6 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Login error:', error);
     
-    // More detailed error message for debugging
     const errorMessage = error.message || 'Internal server error';
     const isDbError = errorMessage.includes('prisma') || errorMessage.includes('database') || errorMessage.includes('connect');
     

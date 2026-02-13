@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
     let employees;
 
     if (user.role === 'admin') {
-      // Admin can see all employees (managers and employees)
       employees = await prisma.user.findMany({
         where: {
           role: {
@@ -31,12 +30,11 @@ export async function GET(request: NextRequest) {
           createdAt: true,
         },
         orderBy: [
-          { role: 'asc' }, // managers first
+          { role: 'asc' },
           { name: 'asc' }
         ],
       });
     } else if (user.role === 'manager') {
-      // Manager can see employees (but not other managers or admins)
       employees = await prisma.user.findMany({
         where: {
           role: 'employee'
@@ -53,14 +51,12 @@ export async function GET(request: NextRequest) {
         orderBy: { name: 'asc' },
       });
     } else {
-      // Employee role shouldn't be able to access this endpoint for template creation
       return NextResponse.json(
         { error: 'Access denied. Only administrators and managers can view employees for assignment.' },
         { status: 403 }
       );
     }
 
-    // Format response
     const formattedEmployees = employees.map(employee => ({
       id: employee.id,
       name: employee.name,

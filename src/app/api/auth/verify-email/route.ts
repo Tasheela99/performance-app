@@ -7,7 +7,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, otp } = body;
 
-    // Validation
     if (!email || !otp) {
       return NextResponse.json(
         { error: 'Email and verification code are required' },
@@ -22,7 +21,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user with verification token
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
       select: {
@@ -56,7 +54,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if OTP is expired
     if (isOTPExpired(user.verificationTokenExpiry)) {
       return NextResponse.json(
         { error: 'Verification code has expired. Please request a new one.' },
@@ -64,7 +61,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify OTP
     if (user.verificationToken !== otp) {
       return NextResponse.json(
         { error: 'Invalid verification code' },
@@ -72,7 +68,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update user to verified status
     const verifiedUser = await prisma.user.update({
       where: { id: user.id },
       data: {

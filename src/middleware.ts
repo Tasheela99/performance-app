@@ -1,15 +1,7 @@
-import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
-/**
- * Global middleware for handling CORS on API routes
- * This ensures all API endpoints have proper CORS headers for production deployment
- * 
- * Security Note: Using wildcard '*' for Access-Control-Allow-Origin allows any origin.
- * For production environments, consider restricting to specific domains via environment variables.
- */
 export function middleware(request: NextRequest) {
-  // Handle preflight OPTIONS request
   if (request.method === 'OPTIONS') {
     return new NextResponse(null, {
       status: 200,
@@ -17,12 +9,11 @@ export function middleware(request: NextRequest) {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Max-Age': '86400', // 24 hours
+        'Access-Control-Max-Age': '86400',
       },
     });
   }
 
-  // For all other requests, add CORS headers to the response
   const response = NextResponse.next();
   
   response.headers.set('Access-Control-Allow-Origin', '*');
@@ -32,7 +23,6 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-// Apply middleware only to API routes
 export const config = {
   matcher: '/api/:path*',
 };

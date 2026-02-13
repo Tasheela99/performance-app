@@ -17,7 +17,6 @@ export async function GET(
 
   const user = authResult.user!;
   
-  // Only admin and manager can view employee progress
   if (user.role !== 'admin' && user.role !== 'manager') {
     return NextResponse.json(
       { error: 'Unauthorized' },
@@ -28,7 +27,6 @@ export async function GET(
   try {
     const { id: employeeId } = await params;
 
-    // Get employee details
     const employee = await prisma.user.findUnique({
       where: { id: employeeId },
       select: {
@@ -49,7 +47,6 @@ export async function GET(
       );
     }
 
-    // Get all submissions for this employee
     const submissions = await prisma.appraisalSubmission.findMany({
       where: { employeeId },
       include: {
@@ -99,19 +96,16 @@ export async function GET(
       orderBy: { createdAt: 'desc' },
     });
 
-    // Calculate statistics
     const totalSubmissions = submissions.length;
     const completedSubmissions = submissions.filter(s => s.status === 'submitted' || s.status === 'reviewed').length;
     const reviewedSubmissions = submissions.filter(s => s.status === 'reviewed').length;
     const pendingSubmissions = submissions.filter(s => s.status === 'pending' || s.status === 'inProgress').length;
 
-    // Calculate average score
     const reviewedWithScores = submissions.filter(s => s.review?.overallScore);
     const averageScore = reviewedWithScores.length > 0
       ? reviewedWithScores.reduce((sum, s) => sum + (s.review?.overallScore || 0), 0) / reviewedWithScores.length
       : 0;
 
-    // Score trend over time (for reviewed submissions)
     const scoreTrend = submissions
       .filter(s => s.review?.overallScore && s.review?.reviewedAt)
       .map(s => ({
@@ -121,7 +115,6 @@ export async function GET(
       }))
       .sort((a, b) => new Date(a.reviewedAt).getTime() - new Date(b.reviewedAt).getTime());
 
-    // Category performance (average scores by category)
     const categoryScores: { [key: string]: { total: number; count: number } } = {};
     
     submissions.forEach(submission => {
@@ -143,7 +136,6 @@ export async function GET(
       count: data.count,
     }));
 
-    // Status distribution
     const statusDistribution = {
       pending: submissions.filter(s => s.status === 'pending').length,
       inProgress: submissions.filter(s => s.status === 'inProgress').length,
@@ -151,7 +143,6 @@ export async function GET(
       reviewed: submissions.filter(s => s.status === 'reviewed').length,
     };
 
-    // Recent submissions
     const recentSubmissions = submissions.slice(0, 5).map(s => ({
       id: s.id,
       templateTitle: s.template.title,
