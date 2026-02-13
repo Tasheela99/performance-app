@@ -166,8 +166,15 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Return more detailed error in development
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    const errorDetails = process.env.NODE_ENV === 'development' 
+      ? { error: errorMessage, stack: error instanceof Error ? error.stack : undefined }
+      : { error: 'Internal server error' };
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      errorDetails,
       { status: 500, headers: corsHeaders }
     );
   }

@@ -4,6 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
+    // Test database connection first
+    await prisma.$connect();
+    
     const body = await request.json();
     const { email, password } = body;
 
@@ -91,10 +94,18 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
+    
+    // More detailed error message for debugging
+    const errorMessage = error.message || 'Internal server error';
+    const isDbError = errorMessage.includes('prisma') || errorMessage.includes('database') || errorMessage.includes('connect');
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: isDbError ? 'Database connection error. Please try again later.' : 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     );
   }
