@@ -199,6 +199,13 @@ export async function PUT(
 
       // Update assignments if provided
       if (assignedTo !== undefined) {
+        // Get existing assignment IDs before deletion
+        const existingAssignments = await tx.templateAssignment.findMany({
+          where: { templateId: id },
+          select: { employeeId: true }
+        });
+        const existingEmployeeIds = new Set(existingAssignments.map(a => a.employeeId));
+
         // Delete existing assignments
         await tx.templateAssignment.deleteMany({
           where: { templateId: id }
@@ -215,6 +222,32 @@ export async function PUT(
             })
           );
           await Promise.all(assignmentPromises);
+
+          // If template is published, create submissions for newly assigned employees
+          if (updatedTemplate.status === 'published') {
+            const newEmployeeIds = assignedTo.filter((empId: string) => !existingEmployeeIds.has(empId));
+            
+            if (newEmployeeIds.length > 0) {
+              // Get employee details for new assignments
+              const newEmployees = await tx.user.findMany({
+                where: { id: { in: newEmployeeIds } },
+                select: { id: true, name: true, email: true }
+              });
+
+              // Create submissions for newly assigned employees
+              const submissionPromises = newEmployees.map(employee =>
+                tx.appraisalSubmission.create({
+                  data: {
+                    templateId: id,
+                    employeeId: employee.id,
+                    employeeName: employee.name,
+                    status: 'pending',
+                  }
+                })
+              );
+              await Promise.all(submissionPromises);
+            }
+          }
         }
       }
 

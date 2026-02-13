@@ -113,3 +113,116 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function POST(request: NextRequest) {
+  const authResult = await requireAuth(request);
+  if (!authResult.success) {
+    return authResult.error;
+  }
+
+  const user = authResult.user!;
+
+  try {
+    const body = await request.json();
+    const { templateId, employeeId, employeeName, responses, overallComment, status } = body;
+
+    // Validate required fields
+    if (!templateId || !employeeId || !employeeName) {
+      return NextResponse.json(
+        { error: 'Missing required fields: templateId, employeeId, employeeName' },
+        { status: 400 }
+      );
+    }
+
+    // Verify template exists and is published
+    const template = await prisma.appraisalTemplate.findUnique({
+      where: { id: templateId },
+      include: { goals: true }
+    });
+
+    if (!template) {
+      return NextResponse.json(
+        { error: 'Template not found' },
+        { status: 404 }
+      );
+    }
+
+    if (template.status !== 'published') {
+      return NextResponse.json(
+        { error: 'Cannot create submission for unpublished template' },
+        { status: 400 }
+      );
+    }
+
+    // Verify employee is assigned to this template (or user is admin/manager)
+    if (user.role === 'employee' && employeeId !== user.id) {
+      return NextResponse.json(
+        { error: 'Cannot create submission for another employee' },
+        { status: 403 }
+      );
+    }
+
+    // Check if submission already exists
+    const existingSubmission = await prisma.appraisalSubmission.findFirst({
+      where: {
+        templateId,
+        employeeId
+      }
+    });
+
+    if (existingSubmission) {
+      return NextResponse.json(
+        { error: 'Submission already exists for this template and employee' },
+        { status: 400 }
+      );
+    }
+
+    // Create submission with responses
+    const result = await prisma.$transaction(async (tx) => {
+      // Create submission
+      const submission = await tx.appraisalSubmission.create({
+        data: {
+          templateId,
+          employeeId,
+          employeeName,
+          status: status || 'pending',
+        }
+      });
+
+      // Create goal responses if provided
+      if (responses && responses.length > 0) {
+        const responsePromises = responses.map((response: any) =>
+          tx.goalResponse.create({
+            data: {
+              submissionId: submission.id,
+              goalId: response.goalId,
+              response: response.selfComment || '',
+            }
+          })
+        );
+        await Promise.all(responsePromises);
+      }
+
+      return submission;
+    });
+
+    return NextResponse.json({
+      message: 'Submission created successfully',
+      submission: {
+        id: result.id,
+        templateId: result.templateId,
+        employeeId: result.employeeId,
+        employeeName: result.employeeName,
+        status: result.status,
+        createdAt: result.createdAt.toISOString(),
+      }
+    });
+
+  } catch (error) {
+    console.error('Create submission error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

@@ -133,7 +133,7 @@ export interface AppraisalContextType {
   publishTemplate: (id: string) => Promise<void>;
   deleteTemplate: (id: string) => Promise<void>;
   // Submission operations (employee)
-  saveSubmission: (submission: Omit<AppraisalSubmission, 'id'>) => Promise<void>;
+  saveSubmission: (submission: Omit<AppraisalSubmission, 'id'>) => Promise<AppraisalSubmission | undefined>;
   submitAppraisal: (submissionId: string) => Promise<void>;
   // Review operations (admin/manager)
   submitReview: (review: Omit<AppraisalReview, 'id' | 'reviewedAt'>) => Promise<void>;

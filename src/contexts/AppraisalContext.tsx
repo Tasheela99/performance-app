@@ -284,7 +284,7 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
     async (submission: Omit<AppraisalSubmission, 'id'>) => {
       try {
         // Find existing submission by templateId and employeeId
-        const existingSubmission = submissions.find(s => 
+        let existingSubmission = submissions.find(s => 
           s.templateId === submission.templateId && 
           s.employeeId === submission.employeeId
         );
@@ -305,12 +305,29 @@ export function AppraisalProvider({ children }: { children: React.ReactNode }) {
               ? { ...s, responses: submission.responses, overallComment: submission.overallComment }
               : s
           ));
+
+          return existingSubmission;
         } else {
-          // This shouldn't happen as submissions are created when templates are published
-          console.warn('Submission not found for template:', submission.templateId);
-          // Reload data to ensure we have the latest submissions
-          await loadData();
-          throw new Error('Submission not found. Please refresh the page.');
+          // Create new submission if it doesn't exist
+          console.log('Creating new submission for template:', submission.templateId);
+          
+          const data = await apiCall('/submissions', {
+            method: 'POST',
+            body: JSON.stringify({
+              templateId: submission.templateId,
+              employeeId: submission.employeeId,
+              employeeName: submission.employeeName,
+              responses: submission.responses,
+              overallComment: submission.overallComment,
+              status: submission.status,
+            }),
+          });
+
+          // Add new submission to state
+          const newSubmission = data.submission;
+          setSubmissions(prev => [...prev, newSubmission]);
+          
+          return newSubmission;
         }
       } catch (error) {
         console.error('Failed to save submission:', error);

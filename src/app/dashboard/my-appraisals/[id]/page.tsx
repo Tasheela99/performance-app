@@ -105,16 +105,11 @@ export default function FillAppraisalPage() {
   };
 
   const handleSubmit = async () => {
-    if (!existingSubmission) {
-      alert('Submission not found. Please refresh the page.');
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       
-      // First, save the current responses
-      await saveSubmission({
+      // First, save the current responses (creates submission if doesn't exist)
+      const savedSubmission = await saveSubmission({
         templateId,
         employeeId: user.id,
         employeeName: user.name,
@@ -123,8 +118,13 @@ export default function FillAppraisalPage() {
         status: 'inProgress',
       });
       
-      // Then submit the appraisal
-      await submitAppraisal(existingSubmission.id);
+      // Then submit the appraisal using the saved submission
+      const submissionId = savedSubmission?.id || existingSubmission?.id;
+      if (!submissionId) {
+        throw new Error('Unable to create or find submission');
+      }
+      
+      await submitAppraisal(submissionId);
       
       setShowSubmitConfirm(false);
       router.push('/dashboard/my-appraisals');
