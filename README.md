@@ -519,7 +519,32 @@ Get the token from the login response and store it in localStorage.
 
 ## 🚀 Deployment
 
-### Deploy to Vercel
+### Deploy to Vercel (Recommended)
+
+Vercel provides the easiest deployment path for Next.js applications with automatic CI/CD and great performance.
+
+#### Method 1: GitHub Integration (Recommended)
+
+1. **Push to GitHub:**
+   ```bash
+   git add .
+   git commit -m "Ready for deployment"
+   git push origin main
+   ```
+
+2. **Connect to Vercel:**
+   - Visit [vercel.com](https://vercel.com) and sign up/login
+   - Click "New Project"
+   - Import your GitHub repository
+   - Vercel will auto-detect Next.js settings
+
+3. **Configure Build Settings:**
+   - Framework Preset: `Next.js`
+   - Build Command: `npm run build` (auto-detected)
+   - Output Directory: `.next` (auto-detected)
+   - Install Command: `npm install` (auto-detected)
+
+#### Method 2: Vercel CLI
 
 1. **Install Vercel CLI:**
    ```bash
@@ -533,20 +558,154 @@ Get the token from the login response and store it in localStorage.
 
 3. **Deploy:**
    ```bash
+   # First deployment (follow prompts)
    vercel
+   
+   # Production deployment
+   vercel --prod
    ```
 
-4. **Set Environment Variables:**
-   - Go to your Vercel project dashboard
-   - Settings → Environment Variables
-   - Add all variables from `.env.local`
+#### Database Setup for Vercel
 
-5. **Database:** Use a managed PostgreSQL service:
-   - [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres)
-   - [Railway](https://railway.app/)
-   - [Neon](https://neon.tech/)
-   - [Supabase](https://supabase.com/)
-   - [AWS RDS](https://aws.amazon.com/rds/)
+**Option A: Vercel Postgres (Recommended)**
+1. In your Vercel project dashboard:
+   - Go to Storage tab
+   - Click "Create Database"
+   - Select "Postgres"
+   - Choose your plan (Hobby is free)
+   - Copy the connection string
+
+**Option B: External Database Services**
+- **Neon** (Recommended): https://neon.tech
+  ```bash
+  # Free tier with 10GB storage
+  # Automatic connection pooling
+  # Instant branching for dev/staging
+  ```
+
+- **Supabase**: https://supabase.com
+  ```bash
+  # Free tier with 500MB storage
+  # Built-in auth and real-time features
+  # Good for smaller projects
+  ```
+
+- **Railway**: https://railway.app
+  ```bash
+  # $5/month with usage-based billing
+  # Simple setup and management
+  # Good for growing projects
+  ```
+
+#### Environment Variables Setup
+
+1. **In Vercel Dashboard:**
+   - Go to your project → Settings → Environment Variables
+   - Add each variable for all environments (Production, Preview, Development)
+
+2. **Required Variables:**
+   ```env
+   # Database (use your production database URL)
+   DATABASE_URL=postgresql://username:password@host:port/database?sslmode=require
+   
+   # Authentication (generate a strong secret for production)
+   JWT_SECRET=your-production-jwt-secret-32-chars-minimum
+   
+   # Application URLs (use your Vercel domain)
+   NEXT_PUBLIC_API_URL=https://your-app-name.vercel.app
+   API_BASE_URL=https://your-app-name.vercel.app
+   NEXT_PUBLIC_APP_NAME=Performance Management System
+   
+   # Session timeouts
+   SESSION_TIMEOUT=3600000
+   REFRESH_TOKEN_TIMEOUT=604800000
+   ```
+
+3. **Optional Variables (for full functionality):**
+   ```env
+   # Email service (for password reset)
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your-email@gmail.com
+   SMTP_PASSWORD=your-app-specific-password
+   SMTP_FROM=noreply@yourapp.com
+   
+   # AWS S3 (for file uploads)
+   AWS_REGION=us-east-1
+   AWS_ACCESS_KEY_ID=your-access-key
+   AWS_SECRET_ACCESS_KEY=your-secret-key
+   AWS_S3_BUCKET_NAME=your-bucket-name
+   ```
+
+#### Database Migration on Vercel
+
+1. **Automatic Migration (Recommended):**
+   - Add to your `package.json`:
+     ```json
+     {
+       "scripts": {
+         "postinstall": "prisma generate && prisma migrate deploy"
+       }
+     }
+     ```
+   - Migrations run automatically on each deployment
+
+2. **Manual Migration:**
+   ```bash
+   # Set your production database URL locally
+   DATABASE_URL="your-production-url" npx prisma migrate deploy
+   ```
+
+#### Database Seeding on Production
+
+1. **Using the API Endpoint:**
+   ```bash
+   # After deployment, call the protected seed endpoint
+   curl -X POST https://your-app.vercel.app/api/seed \
+     -H "Content-Type: application/json" \
+     -d '{"secret": "your-seed-secret"}'
+   ```
+
+2. **Manual Seeding:**
+   ```bash
+   # Connect to production database and run seed
+   DATABASE_URL="your-production-url" npm run db:seed
+   ```
+
+#### Vercel Deployment Checklist
+
+- [ ] ✅ Repository pushed to GitHub
+- [ ] ✅ Vercel project created and connected
+- [ ] ✅ Production database setup (Vercel Postgres/Neon/Railway)
+- [ ] ✅ All environment variables configured
+- [ ] ✅ `postinstall` script added for migrations
+- [ ] ✅ Database migrated and seeded
+- [ ] ✅ Custom domain configured (optional)
+- [ ] ✅ SSL certificate enabled (automatic)
+- [ ] ✅ Default admin password changed
+
+#### Production URL Structure
+
+After deployment, your app will be available at:
+- **Primary**: `https://your-app-name.vercel.app`
+- **Git Branch**: `https://your-app-name-git-branch.vercel.app`
+- **Custom Domain**: `https://yourdomain.com` (if configured)
+
+#### Monitoring and Analytics
+
+1. **Vercel Analytics:**
+   - Enable in project settings for performance insights
+   - Track Core Web Vitals and page load times
+
+2. **Error Tracking:**
+   ```bash
+   # Add Sentry for production error tracking
+   npm install @sentry/nextjs
+   ```
+
+3. **Database Monitoring:**
+   - Use your database provider's dashboard
+   - Set up alerts for connection limits and performance
 
 ### Deploy to Other Platforms
 
@@ -596,6 +755,100 @@ railway up
 - [ ] Configure CI/CD pipeline
 
 ## 🐛 Troubleshooting
+
+### Vercel Deployment Issues
+
+**CORS Error: Access blocked by CORS policy**
+
+This happens when your environment variables point to the wrong domain. 
+
+**Fix:**
+1. **Update Environment Variables in Vercel:**
+   ```env
+   # ❌ Wrong - placeholder values
+   NEXT_PUBLIC_API_URL=https://your-production-domain.com
+   API_BASE_URL=https://your-production-domain.com
+   
+   # ✅ Correct - use your actual Vercel domain
+   NEXT_PUBLIC_API_URL=https://performance-app-mocha.vercel.app
+   API_BASE_URL=https://performance-app-mocha.vercel.app
+   ```
+
+2. **Redeploy after updating variables:**
+   ```bash
+   vercel --prod
+   ```
+
+**Double API Path (/api/api/...)**
+
+This occurs when `NEXT_PUBLIC_API_URL` includes `/api` suffix.
+
+**Fix:**
+```env
+# ❌ Wrong
+NEXT_PUBLIC_API_URL=https://your-domain.vercel.app/api
+
+# ✅ Correct  
+NEXT_PUBLIC_API_URL=https://your-domain.vercel.app
+```
+
+**API Routes Not Found (404)**
+
+Ensure your API routes are properly structured:
+
+```bash
+src/app/api/
+├── auth/
+│   ├── login/route.ts          # /api/auth/login
+│   ├── register/route.ts       # /api/auth/register  
+│   └── forgot-password/route.ts # /api/auth/forgot-password
+├── users/route.ts              # /api/users
+└── health/route.ts             # /api/health
+```
+
+**Environment Variables Not Loading**
+
+1. **Check variable names** (must start with `NEXT_PUBLIC_` for client-side)
+2. **Redeploy** after adding variables
+3. **Clear browser cache** and hard refresh (Ctrl+Shift+R)
+
+**Build Failures on Vercel**
+
+```bash
+# Common Next.js build errors
+Error: Cannot find module 'xyz'
+
+# Fix: Ensure dependencies are in package.json
+npm install missing-package
+git commit -am "Add missing dependency"
+git push
+```
+
+**Database Connection in Production**
+
+```bash
+# Test database connection
+DATABASE_URL="your-production-url" npx prisma db pull
+
+# If connection fails, check:
+# 1. SSL mode required: ?sslmode=require
+# 2. Connection limits
+# 3. IP whitelist (if applicable)
+```
+
+**Quick Fix Commands for Vercel:**
+
+```bash
+# 1. Fix environment variables in Vercel dashboard
+# 2. Then redeploy
+vercel --prod
+
+# 3. Test API endpoints
+curl https://your-app.vercel.app/api/health
+
+# 4. Check logs
+vercel logs https://your-app.vercel.app
+```
 
 ### Database Connection Issues
 
