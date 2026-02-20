@@ -3,7 +3,7 @@
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useAuth } from '@/contexts/AuthContext';
-import { faArrowRight, faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faEnvelope, faEye, faEyeSlash, faLock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const savedEmail = localStorage.getItem('rememberedEmail');
@@ -128,16 +129,25 @@ export default function LoginPage() {
               icon={faEnvelope}
             />
 
-            <Input
-              type="password"
-              name="password"
-              label="Password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-              error={errors.password}
-              icon={faLock}
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                label="Password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                error={errors.password}
+                icon={faLock}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-14 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none z-10"
+              >
+                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="text-sm" />
+              </button>
+            </div>
 
             {errors.submit && (
               <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">

@@ -3,7 +3,7 @@
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useAuth } from '@/contexts/AuthContext';
-import { faCheckCircle, faLock, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faEye, faEyeSlash, faLock, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -21,6 +21,8 @@ function ResetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [token, setToken] = useState<string>('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     const resetToken = searchParams.get('token');
@@ -179,16 +181,25 @@ function ResetPasswordForm() {
             {!errors.token && !isSuccess && (
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <Input
-                    type="password"
-                    name="password"
-                    label="New Password"
-                    placeholder="Enter strong password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    error={errors.password}
-                    icon={faLock}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      label="New Password"
+                      placeholder="Enter strong password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      error={errors.password}
+                      icon={faLock}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-14 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none z-10"
+                    >
+                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="text-sm" />
+                    </button>
+                  </div>
                   
                   <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <p className="text-xs font-semibold text-gray-700 mb-2">Password must include:</p>
@@ -213,16 +224,25 @@ function ResetPasswordForm() {
                   </div>
                 </div>
 
-                <Input
-                  type="password"
-                  name="confirmPassword"
-                  label="Confirm New Password"
-                  placeholder="Re-enter password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  error={errors.confirmPassword}
-                  icon={faLock}
-                />
+                <div className="relative">
+                  <Input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    label="Confirm New Password"
+                    placeholder="Re-enter password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    error={errors.confirmPassword}
+                    icon={faLock}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none z-10"
+                  >
+                    <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} className="text-sm" />
+                  </button>
+                </div>
 
                 {errors.submit && (
                   <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
